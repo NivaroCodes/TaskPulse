@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+
+# Environment variables
+.env
+.env.*
+.flaskenv
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+taskboard.db
+
+# Uvicorn
+.uvicorn_reload_*.py
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# uv specific
+uv.lock
+.python-version

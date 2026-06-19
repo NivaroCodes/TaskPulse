@@ -148,4 +148,4 @@ Feel free to fork the repository, create feature branches, and submit pull reque
 
 ## License
 
-[Choose a license, e.g., MIT License]
+MIT

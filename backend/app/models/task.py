@@ -1,8 +1,10 @@
 import uuid
-from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, Enum
+from sqlalchemy import String, Text, DateTime, Enum
+from sqlalchemy.orm import Mapped, mapped_column
 import enum
 from app.core.database import Base
+from datetime import UTC, datetime
+
 
 class TaskStatus(str, enum.Enum):
     PENDING = "pending"
@@ -13,13 +15,22 @@ class TaskStatus(str, enum.Enum):
 class Task(Base):
     __tablename__ = "tasks"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=False)
-    description = Column(Text, nullable=False)
-    status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.PENDING)
-    org_id = Column(String, nullable=False, index=True)
-    created_by = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
-
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    title: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(Text)
+    status: Mapped[TaskStatus] = mapped_column(
+        Enum(TaskStatus),
+        nullable=False,
+        default=TaskStatus.PENDING,
+    )
+    org_id: Mapped[str] = mapped_column(String, index=True)
+    created_by: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )

@@ -1,6 +1,0 @@
-/* Auth Pages (SignIn/SignUp) */
-.auth-container {
-  display: flex;
-  justify-content: center;
-  padding: var(--spacing-20) var(--spacing-4);
-}

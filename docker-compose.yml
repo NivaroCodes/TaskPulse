@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: taskpulse-postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: taskpulse
+      POSTGRES_USER: taskpulse
+      POSTGRES_PASSWORD: taskpulse_startup
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskpulse -d taskpulse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

@@ -1,19 +1,22 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.api import tasks
 
-
-Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 
 app = FastAPI(
     title="Task Board API",
-    desctiption="B2B Task Board App",
+    description="B2B Task Board App",
     version="1.0.0",
+    lifespan=lifespan
 )
-
-print(f"DEBUG: settings.FRONTEND_URL is: {settings.FRONTEND_URL}")
 
 app.add_middleware(
     CORSMiddleware,

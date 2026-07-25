@@ -5,22 +5,28 @@ from app.models.task import TaskStatus
 
 class TaskCreate(BaseModel):
     title: str
-    description: Optional[str]
-    status: TaskStatus = TaskStatus.PENDING
+    description: Optional[str] = None
+    status: TaskStatus = TaskStatus.pending
+    priority: Optional[str] = None
+    assignee: Optional[str] = None
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     status: Optional[TaskStatus] = None
+    priority: Optional[str] = None
+    assignee: Optional[str] = None
 
 class TaskStatusUpdate(BaseModel):
     status: TaskStatus
 
 class TaskResponse(BaseModel):
-    id: str # Изменено с int на str
+    id: str
     title: str
     description: Optional[str]
     status: TaskStatus
+    priority: Optional[str] = None
+    assignee: Optional[str] = None
     org_id: str
     created_by:  str
     created_at: datetime

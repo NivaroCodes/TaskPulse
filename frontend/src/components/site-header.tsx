@@ -4,6 +4,7 @@ import { SignedIn, SignedOut } from "./auth-gates";
 import { LayoutGrid } from "lucide-react";
 
 import { Button } from "./ui/button";
+import { SendInvitationDialog } from "./invitations/send-invitation-dialog";
 
 export function SiteHeader() {
   return (
@@ -57,6 +58,7 @@ export function SiteHeader() {
                 }}
               />
             </div>
+            <SendInvitationDialog />
             <UserButton
               appearance={{ elements: { avatarBox: "h-8 w-8" } }}
             />

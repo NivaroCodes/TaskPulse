@@ -12,7 +12,12 @@ class Config:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "")
 
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
+    SMTP_USER: str = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+
     FREE_TIER_MEMBERSHIP_LIMIT: int = 2
-    PRO_TIER_MEMBERSHIP_LIMIT = 0 #unlimited
+    PRO_TIER_MEMBERSHIP_LIMIT = 0
 
 settings = Config()

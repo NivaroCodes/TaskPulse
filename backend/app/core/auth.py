@@ -16,7 +16,7 @@ class AuthUser:
 
     @property
     def can_view(self) -> bool:
-        return True
+        return self.has_permission("org:tasks:view") or self.has_permission("org:tasks:manage")
 
     @property
     def can_create(self) -> bool:
@@ -29,6 +29,10 @@ class AuthUser:
     @property
     def can_edit(self) -> bool:
         return self.has_permission("org:tasks:edit") or self.has_permission("org:tasks:manage")
+
+    @property
+    def can_invite(self) -> bool:
+        return self.has_permission("org:members:invite") or self.has_permission("org:members:manage")
 
 
 def convert_to_httpx_request(fastapi_request: Request) -> httpx.Request:
@@ -56,32 +60,21 @@ async def get_current_user(request: Request) -> AuthUser:
     user_id = claims.get("sub")
     org_id = claims.get("org_id")
 
-    org_claims = claims.get("o", {})
-    raw_permissions = org_claims.get("per", "")
-    if isinstance(raw_permissions, str):
-        org_permissions = [
-            f"org:tasks:{permission.strip()}"
-            for permission in raw_permissions.split(",")
-            if permission.strip()
-        ]
-    elif isinstance(raw_permissions, list):
-        org_permissions = [
-            f"org:tasks:{permission.strip()}"
-            for permission in raw_permissions
-            if isinstance(permission, str) and permission.strip()
-        ]
-    else:
-        org_permissions = []
+    org_permissions = claims.get("permissions") or claims.get("org_permissions") or []
+    
+    if isinstance(org_permissions, str):
+        org_permissions = [p.strip() for p in org_permissions.split(',') if p.strip()]
+    
+    org_permissions = [p if p.startswith("org:") else f"org:tasks:{p}" for p in org_permissions]
 
-    org_role = org_claims.get("rol") or org_claims.get("role") or claims.get("org_role")
-    if org_role in {"org:admin", "org:editor"}:
+    org_role = claims.get("org_role") or claims.get("o", {}).get("rol")
+    if org_role == "admin":
         org_permissions.extend([
-            "org:tasks:view",
-            "org:tasks:create",
-            "org:tasks:edit",
-            "org:tasks:delete",
-            "org:tasks:manage",
+            "org:tasks:view", "org:tasks:create", "org:tasks:edit", "org:tasks:delete", "org:tasks:manage",
+            "org:members:invite", "org:members:manage"
         ])
+    
+    org_permissions = list(set(org_permissions))
 
     if not user_id:
         raise HTTPException(
@@ -133,4 +126,13 @@ def require_edit(user: AuthUser = Depends(get_current_user)) -> AuthUser:
             detail="Edit permission required"
         )
 
+    return user
+
+
+def require_invite(user: AuthUser = Depends(get_current_user)) -> AuthUser:
+    if not user.can_invite:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invite members permission required"
+        )
     return user

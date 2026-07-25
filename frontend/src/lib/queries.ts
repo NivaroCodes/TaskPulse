@@ -6,8 +6,9 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { tasksApi } from "./api";
+import { tasksApi, invitationsApi } from "./api";
 import type { Task, TaskCreate, TaskUpdate } from "./tasks";
+import type { InvitationCreate, Invitation } from "./invitations";
 
 export function useOrgId(): string | null {
   const { organization } = useOrganization();
@@ -87,5 +88,50 @@ export function useDeleteTask() {
     },
     onSuccess: () => toast.success("Task deleted"),
     onSettled: () => qc.invalidateQueries({ queryKey: ["tasks", orgId] }),
+  });
+}
+
+export function useSendInvitation() {
+  const { getToken } = useAuth();
+  const orgId = useOrgId();
+  return useMutation({
+    mutationFn: (data: InvitationCreate) => invitationsApi.send(getToken, orgId!, data),
+    onSuccess: () => toast.success("Invitation sent successfully"),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useGetInvitationDetails(token: string) {
+  const { getToken } = useAuth();
+  return useQuery<Invitation>({
+    queryKey: ["invitation", token],
+    queryFn: () => invitationsApi.get(getToken, token),
+    retry: false, // Don't retry if token is invalid or expired
+  });
+}
+
+export function useAcceptInvitation() {
+  const { getToken } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (token: string) => invitationsApi.accept(getToken, token),
+    onSuccess: (_, token) => {
+      qc.invalidateQueries({ queryKey: ["invitation", token] });
+      toast.success("Invitation accepted! Welcome to the organization.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useDeclineInvitation() {
+  const { getToken } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (token: string) => invitationsApi.decline(getToken, token),
+    onSuccess: (_, token) => {
+      qc.invalidateQueries({ queryKey: ["invitation", token] });
+      toast.success("Invitation declined.");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 }

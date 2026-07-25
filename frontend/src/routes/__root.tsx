@@ -105,7 +105,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/taskpulse.png", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
@@ -116,15 +116,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <head>
-        <HeadContent />
-      </head>
-      <body className="min-h-screen bg-background text-foreground antialiased">
-        {children}
-        <Scripts />
-      </body>
-    </html>
+    <html lang="en" className="dark" suppressHydrationWarning><head suppressHydrationWarning><HeadContent /></head><body className="min-h-screen bg-background text-foreground antialiased" suppressHydrationWarning>{children}<Scripts /></body></html>
   );
 }
 

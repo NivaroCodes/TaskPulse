@@ -21,6 +21,8 @@ class TaskRepository:
             title=task_data.title,
             description=task_data.description,
             status=task_data.status,
+            priority=task_data.priority,
+            assignee=task_data.assignee,
             org_id=org_id,
             created_by=user_id
         )

@@ -1,3 +1,10 @@
+from fastapi import APIRouter, Request, Header, HTTPException
+from svix.webhooks import Webhook
+from svix.exceptions import WebhookVerificationError
+from app.core.config import settings
+
+router = APIRouter(tags=["webhooks"])
+
 @router.post("/clerk")
 async def clerk_webhook(request: Request, svix_id: str = Header(None), svix_timestamp: str = Header(None),
                         svix_signature: str = Header(None)):

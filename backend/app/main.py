@@ -1,9 +1,18 @@
+import sys
+import asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+
+import uuid
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api import tasks
+from app.api import tasks, webhooks, invitations
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+print(f"DEBUG: settings.FRONTEND_URL is: {settings.FRONTEND_URL}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,12 +27,21 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+@app.middleware("http")
+async def id_generator_middleware(request: Request, call_next):
+    request.state.request_id = uuid.uuid4().hex
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request.state.request_id
+    return response
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL],
+    allow_origins=[settings.FRONTEND_URL, "http://localhost:8080", "http://localhost:8080/", "http://127.0.0.1:8080", "http://127.0.0.1:8080/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
 )
 
 app.include_router(tasks.router)
+app.include_router(webhooks.router)
+app.include_router(invitations.router)

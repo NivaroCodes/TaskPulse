@@ -24,13 +24,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../ui/alert-dialog";
+import { useOrganization } from "@clerk/tanstack-react-start";
 import { STATUSES, type Task, type TaskStatus } from "../../lib/tasks";
 import { useCreateTask, useDeleteTask, useTasks, useUpdateTask } from "../../lib/queries";
 
-import { useCanManageTasks } from "../permission-gate";
+import { useCanManageTasks, useCanDeleteTasks } from "../permission-gate";
 import { Column } from "./column";
 import { TaskCard } from "./task-card";
 import { TaskDialog } from "./task-dialog";
+import { DashboardAnalytics } from "../analytics/dashboard-analytics";
+import { BarChart3 } from "lucide-react";
 
 type DialogState =
   | { mode: "create"; status: TaskStatus }
@@ -39,14 +42,19 @@ type DialogState =
 
 export function Board() {
   const canManage = useCanManageTasks();
+  const canDelete = useCanDeleteTasks();
   const { data: tasks, isLoading, error } = useTasks();
   const create = useCreateTask();
   const update = useUpdateTask();
   const remove = useDeleteTask();
 
-  const [dialog, setDialog] = useState<DialogState>(null);
+  const [dialog, setDialog] = useState<{ mode: "create" | "edit"; task?: Task; status?: TaskStatus } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Task | null>(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  const { membership, memberships } = useOrganization({ memberships: true });
+  const isAnalyticsAllowed = ["org:admin", "org:project_manager"].includes(membership?.role || "");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -107,12 +115,22 @@ export function Board() {
             {canManage ? "Drag to change status. Click a task to edit." : "Read-only view. Ask an admin for edit access."}
           </p>
         </div>
-        {canManage && (
-          <Button onClick={() => setDialog({ mode: "create", status: "pending" })}>
-            <Plus className="mr-1 h-4 w-4" /> New task
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {isAnalyticsAllowed && (
+            <Button variant="outline" onClick={() => setShowAnalytics(!showAnalytics)} className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">{showAnalytics ? "Hide Analytics" : "Show Analytics"}</span>
+            </Button>
+          )}
+          {canManage && (
+            <Button onClick={() => setDialog({ mode: "create", status: "pending" })}>
+              <Plus className="mr-1 h-4 w-4" /> New task
+            </Button>
+          )}
+        </div>
       </div>
+
+      {showAnalytics && <DashboardAnalytics memberships={memberships?.data} role={membership?.role || ""} />}
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:overflow-visible">
@@ -126,7 +144,9 @@ export function Board() {
                   label={s.label}
                   hint={s.hint}
                   tasks={grouped[s.id]}
+                  memberships={memberships?.data}
                   canManage={canManage}
+                  canDelete={canDelete}
                   onAdd={(status) => setDialog({ mode: "create", status })}
                   onEdit={(task) => setDialog({ mode: "edit", task })}
                   onDelete={(task) => setConfirmDelete(task)}
@@ -137,7 +157,7 @@ export function Board() {
         </div>
         <DragOverlay>
           {activeTask && (
-            <TaskCard task={activeTask} canManage={false} onEdit={() => {}} onDelete={() => {}} />
+            <TaskCard task={activeTask} canManage={false} canDelete={false} memberships={memberships?.data} onEdit={() => {}} onDelete={() => {}} />
           )}
         </DragOverlay>
       </DndContext>

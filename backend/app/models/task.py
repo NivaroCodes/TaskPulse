@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import String, Text, DateTime, Enum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 from app.core.database import Base
 from datetime import UTC, datetime
@@ -25,6 +25,7 @@ class Task(Base):
     )
     priority: Mapped[str | None] = mapped_column(String, nullable=True)
     assignee: Mapped[str | None] = mapped_column(String, nullable=True)
+    due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     org_id: Mapped[str] = mapped_column(String, index=True)
     created_by: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(
@@ -36,3 +37,6 @@ class Task(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
+    subtasks = relationship("Subtask", back_populates="task", cascade="all, delete-orphan", order_by="Subtask.created_at")
+    comments = relationship("Comment", back_populates="task", cascade="all, delete-orphan", order_by="Comment.created_at")
+    activity_logs = relationship("ActivityLog", back_populates="task", cascade="all, delete-orphan", order_by="ActivityLog.created_at")

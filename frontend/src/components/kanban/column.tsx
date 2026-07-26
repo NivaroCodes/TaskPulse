@@ -13,7 +13,9 @@ export function Column({
   label,
   hint,
   tasks,
+  memberships,
   canManage,
+  canDelete,
   onAdd,
   onEdit,
   onDelete,
@@ -22,7 +24,9 @@ export function Column({
   label: string;
   hint: string;
   tasks: Task[];
+  memberships: any;
   canManage: boolean;
+  canDelete: boolean;
   onAdd: (status: TaskStatus) => void;
   onEdit: (t: Task) => void;
   onDelete: (t: Task) => void;
@@ -66,7 +70,7 @@ export function Column({
             </div>
           )}
           {tasks.map((t) => (
-            <TaskCard key={t.id} task={t} canManage={canManage} onEdit={onEdit} onDelete={onDelete} />
+            <TaskCard key={t.id} task={t} canManage={canManage} canDelete={canDelete} memberships={memberships} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </SortableContext>
       </div>

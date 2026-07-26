@@ -120,6 +120,11 @@
   html {
     color-scheme: dark;
   }
+  
+  /* Hide Clerk's native Create Organization button in OrganizationSwitcher */
+  .cl-organizationSwitcherActionButton__createOrganization {
+    display: none !important;
+  }
 }
 
 @utility glass {

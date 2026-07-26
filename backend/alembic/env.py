@@ -10,6 +10,10 @@ from app.core.database import Base
 
 from app.models.task import Task
 from app.models.invitation import Invitation
+from app.models.subscription import OrganizationSubscription
+from app.models.subtask import Subtask
+from app.models.comment import Comment
+from app.models.activity_log import ActivityLog
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

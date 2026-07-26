@@ -13,14 +13,20 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { useSendInvitation } from "../../lib/queries";
-import { MailPlus, AlertCircle } from "lucide-react";
+import { useSendInvitation, useOrgPlan } from "../../lib/queries";
+import { MailPlus, AlertCircle, Lock } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 
 export function SendInvitationDialog() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("org:member");
+  const navigate = useNavigate();
   
+  const { data: planData } = useOrgPlan();
+  const plan = planData?.plan ?? "free";
+  const hasAdvancedRoles = plan === "team" || plan === "enterprise";
+
   const { mutate: sendInvitation, isPending } = useSendInvitation();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -76,9 +82,37 @@ export function SendInvitationDialog() {
                 <SelectContent>
                   <SelectItem value="org:member">Member</SelectItem>
                   <SelectItem value="org:admin">Admin</SelectItem>
+                  <SelectItem value="org:project_manager" disabled={!hasAdvancedRoles}>
+                    <div className="flex items-center gap-2">
+                      Project Manager {!hasAdvancedRoles && <Lock className="h-3 w-3 text-muted-foreground" />}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="org:viewer" disabled={!hasAdvancedRoles}>
+                    <div className="flex items-center gap-2">
+                      Viewer {!hasAdvancedRoles && <Lock className="h-3 w-3 text-muted-foreground" />}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="org:guest" disabled={!hasAdvancedRoles}>
+                    <div className="flex items-center gap-2">
+                      Guest {!hasAdvancedRoles && <Lock className="h-3 w-3 text-muted-foreground" />}
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            
+            {!hasAdvancedRoles && (
+              <div className="text-xs text-muted-foreground mt-1 mb-2">
+                Advanced roles (Project Manager, Viewer, Guest) are available on the Team plan.{' '}
+                <button 
+                  type="button" 
+                  onClick={() => { setOpen(false); navigate({ to: '/pricing' }); }}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Upgrade now
+                </button>
+              </div>
+            )}
             
             <Alert variant="default" className="bg-muted/50 border-primary/20">
               <AlertCircle className="h-4 w-4 text-primary" />

@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
+import { useAuth, useOrganization } from "@clerk/tanstack-react-start";
+import { paymentsApi } from "../../lib/api";
 
 type Tier = {
   name: string;
@@ -84,6 +86,41 @@ const tiers: Tier[] = [
 
 export function PricingCards() {
   const [yearly, setYearly] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const { isSignedIn, getToken } = useAuth();
+  const { organization } = useOrganization();
+
+  const handleSubscribe = async (planName: string, provider: 'stripe' | 'kaspi') => {
+    const plan = planName.toLowerCase();
+    
+    if (!isSignedIn) {
+      window.location.href = '/sign-in?redirect_url=/pricing';
+      return;
+    }
+    
+    if (!organization) {
+      alert("Please create or select an organization first.");
+      return;
+    }
+
+    setLoadingPlan(`${plan}-${provider}`);
+    
+    try {
+      const response = provider === 'stripe' 
+        ? await paymentsApi.createStripeCheckout(getToken, organization.id, plan)
+        : await paymentsApi.createKaspiInvoice(getToken, organization.id, plan);
+      
+      if (response && response.url) {
+        window.location.href = response.url;
+      }
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      alert("Failed to initiate payment. Please try again.");
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 md:px-6">
@@ -118,8 +155,10 @@ export function PricingCards() {
             <div
               key={tier.name}
               className={cn(
-                "relative flex flex-col rounded-xl border p-6 transition",
-                tier.highlight ? "border-primary/60 bg-card shadow-lg shadow-primary/10" : "border-border/60 bg-card/60 hover:border-border",
+                "relative flex flex-col rounded-xl border p-6 transition duration-300",
+                tier.highlight 
+                  ? "border-primary/60 bg-card shadow-lg shadow-primary/10 transform md:-translate-y-2" 
+                  : "border-border/60 bg-card/60 hover:border-border opacity-60 hover:opacity-100",
               )}
             >
               {tier.highlight && (
@@ -140,9 +179,29 @@ export function PricingCards() {
                 )}
               </div>
 
-              <Button asChild className="mt-5" variant={tier.highlight ? "default" : "outline"}>
-                <Link to="/sign-up">{tier.cta}</Link>
-              </Button>
+              {tier.name === "Free" ? (
+                <Button asChild className="mt-5 rounded-md" variant={tier.highlight ? "default" : "outline"}>
+                  <Link to="/sign-up">{tier.cta}</Link>
+                </Button>
+              ) : (
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <Button 
+                    className="w-full rounded-md" 
+                    variant="default"
+                    onClick={() => handleSubscribe(tier.name, 'stripe')}
+                    disabled={loadingPlan !== null}
+                  >
+                    {loadingPlan === `${tier.name.toLowerCase()}-stripe` ? 'Wait...' : 'Stripe'}
+                  </Button>
+                  <Button 
+                    className="w-full rounded-md bg-[#f14635] text-white hover:bg-[#f14635]/90 border border-[#f14635]" 
+                    onClick={() => handleSubscribe(tier.name, 'kaspi')}
+                    disabled={loadingPlan !== null}
+                  >
+                    {loadingPlan === `${tier.name.toLowerCase()}-kaspi` ? 'Wait...' : 'Kaspi Pay'}
+                  </Button>
+                </div>
+              )}
 
               <ul className="mt-6 space-y-2.5 text-sm">
                 {tier.features.map((f) => (

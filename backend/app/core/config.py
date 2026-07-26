@@ -11,6 +11,9 @@ class Config:
 
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "")
+    
+    STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
+    STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))

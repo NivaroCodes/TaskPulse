@@ -1,6 +1,7 @@
 import { useAuth } from "@clerk/tanstack-react-start";
 import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useNotifications } from "../hooks/useNotifications";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
@@ -9,6 +10,8 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
   const { isLoaded, isSignedIn } = useAuth();
   const navigate = useNavigate();
+
+  useNotifications();
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {

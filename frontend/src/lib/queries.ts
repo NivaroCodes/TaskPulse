@@ -6,13 +6,33 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { tasksApi, invitationsApi } from "./api";
+import { tasksApi, invitationsApi, organizationsApi, analyticsApi } from "./api";
 import type { Task, TaskCreate, TaskUpdate } from "./tasks";
 import type { InvitationCreate, Invitation } from "./invitations";
 
 export function useOrgId(): string | null {
   const { organization } = useOrganization();
   return organization?.id ?? null;
+}
+
+export function useOrgPlan() {
+  const { getToken } = useAuth();
+  const orgId = useOrgId();
+  return useQuery<{ plan: string }>({
+    queryKey: ["orgPlan", orgId],
+    enabled: !!orgId,
+    queryFn: () => organizationsApi.getPlan(getToken, orgId!),
+  });
+}
+
+export function useAnalytics() {
+  const { getToken } = useAuth();
+  const orgId = useOrgId();
+  return useQuery<any>({
+    queryKey: ["analytics", orgId],
+    enabled: !!orgId,
+    queryFn: () => analyticsApi.get(getToken, orgId!),
+  });
 }
 
 export function useTasks() {
@@ -106,7 +126,7 @@ export function useGetInvitationDetails(token: string) {
   return useQuery<Invitation>({
     queryKey: ["invitation", token],
     queryFn: () => invitationsApi.get(getToken, token),
-    retry: false, // Don't retry if token is invalid or expired
+    retry: false,
   });
 }
 

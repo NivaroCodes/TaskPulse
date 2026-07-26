@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as KaspiMockPayRouteImport } from './routes/kaspi-mock-pay'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
@@ -20,6 +21,11 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KaspiMockPayRoute = KaspiMockPayRouteImport.update({
+  id: '/kaspi-mock-pay',
+  path: '/kaspi-mock-pay',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -54,6 +60,7 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/kaspi-mock-pay': typeof KaspiMockPayRoute
   '/pricing': typeof PricingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/kaspi-mock-pay': typeof KaspiMockPayRoute
   '/pricing': typeof PricingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -72,6 +80,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/kaspi-mock-pay': typeof KaspiMockPayRoute
   '/pricing': typeof PricingRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -82,6 +91,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/kaspi-mock-pay'
     | '/pricing'
     | '/dashboard'
     | '/invite/$token'
@@ -90,6 +100,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/kaspi-mock-pay'
     | '/pricing'
     | '/dashboard'
     | '/invite/$token'
@@ -99,6 +110,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/kaspi-mock-pay'
     | '/pricing'
     | '/_authenticated/dashboard'
     | '/invite/$token'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  KaspiMockPayRoute: typeof KaspiMockPayRoute
   PricingRoute: typeof PricingRoute
   InviteTokenRoute: typeof InviteTokenRoute
   SignInSplatRoute: typeof SignInSplatRoute
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kaspi-mock-pay': {
+      id: '/kaspi-mock-pay'
+      path: '/kaspi-mock-pay'
+      fullPath: '/kaspi-mock-pay'
+      preLoaderRoute: typeof KaspiMockPayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -184,6 +204,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  KaspiMockPayRoute: KaspiMockPayRoute,
   PricingRoute: PricingRoute,
   InviteTokenRoute: InviteTokenRoute,
   SignInSplatRoute: SignInSplatRoute,

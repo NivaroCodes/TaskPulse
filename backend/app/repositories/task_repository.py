@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from typing import List
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskUpdate
@@ -9,11 +10,19 @@ class TaskRepository:
         self.db = db
 
     async def get_by_id(self, task_id: str, org_id: str) -> Task | None:
-        result = await self.db.execute(select(Task).filter_by(id=task_id, org_id=org_id))
+        stmt = select(Task).filter_by(id=task_id, org_id=org_id).options(
+            selectinload(Task.subtasks),
+            selectinload(Task.comments)
+        )
+        result = await self.db.execute(stmt)
         return result.scalars().first()
 
     async def get_all(self, org_id: str) -> List[Task]:
-        result = await self.db.execute(select(Task).filter_by(org_id=org_id))
+        stmt = select(Task).filter_by(org_id=org_id).options(
+            selectinload(Task.subtasks),
+            selectinload(Task.comments)
+        )
+        result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
     async def create(self, task_data: TaskCreate, user_id: str, org_id: str) -> Task:
@@ -23,6 +32,7 @@ class TaskRepository:
             status=task_data.status,
             priority=task_data.priority,
             assignee=task_data.assignee,
+            due_date=task_data.due_date,
             org_id=org_id,
             created_by=user_id
         )

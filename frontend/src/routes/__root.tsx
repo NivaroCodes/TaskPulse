@@ -126,7 +126,7 @@ function RootComponent() {
   return (
     <ClerkProvider publishableKey={CLERK_PK}>
       <QueryClientProvider client={queryClient}>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        {}
         <Outlet />
         <Toaster theme="dark" position="bottom-right" richColors closeButton />
       </QueryClientProvider>

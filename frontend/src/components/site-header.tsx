@@ -5,6 +5,7 @@ import { LayoutGrid } from "lucide-react";
 
 import { Button } from "./ui/button";
 import { SendInvitationDialog } from "./invitations/send-invitation-dialog";
+import { CreateOrganizationDialog } from "./organizations/create-organization-dialog";
 
 export function SiteHeader() {
   return (
@@ -58,6 +59,7 @@ export function SiteHeader() {
                 }}
               />
             </div>
+            <CreateOrganizationDialog />
             <SendInvitationDialog />
             <UserButton
               appearance={{ elements: { avatarBox: "h-8 w-8" } }}

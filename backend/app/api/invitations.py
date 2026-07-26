@@ -6,6 +6,7 @@ from datetime import datetime
 from app.core.database import get_db
 from app.core.auth import get_current_user, AuthUser
 from app.services.invitation_service import InvitationService
+from app.services.subscription_service import SubscriptionService
 from app.repositories.invitation_repository import InvitationRepository
 from app.schemas.invitation import InvitationCreate
 from app.models.invitation import InvitationStatus
@@ -29,7 +30,8 @@ class InvitationResponse(BaseModel):
 
 def get_invitation_service(db: AsyncSession = Depends(get_db)) -> InvitationService:
     repository = InvitationRepository(db)
-    return InvitationService(invitation_repository=repository)
+    subscription_service = SubscriptionService(db)
+    return InvitationService(invitation_repository=repository, subscription_service=subscription_service)
 
 @router.post("/api/organizations/{org_id}/invitations", response_model=InvitationResponse)
 async def send_invitation(

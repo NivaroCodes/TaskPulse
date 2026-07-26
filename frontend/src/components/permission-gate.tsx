@@ -20,5 +20,11 @@ export function PermissionGate({
 export function useCanManageTasks(): boolean {
   const { membership, isLoaded } = useOrganization();
   if (!isLoaded) return false;
-  return membership?.role === "org:admin";
+  return ["org:admin", "org:project_manager", "org:member"].includes(membership?.role || "");
+}
+
+export function useCanDeleteTasks(): boolean {
+  const { membership, isLoaded } = useOrganization();
+  if (!isLoaded) return false;
+  return ["org:admin", "org:project_manager"].includes(membership?.role || "");
 }

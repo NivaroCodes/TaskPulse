@@ -10,9 +10,11 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import { Button } from "../ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { Skeleton } from "../ui/skeleton";
 import {
   AlertDialog,
@@ -52,9 +54,25 @@ export function Board() {
   const [confirmDelete, setConfirmDelete] = useState<Task | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
   const { membership, memberships } = useOrganization({ memberships: true });
   const isAnalyticsAllowed = ["org:admin", "org:project_manager"].includes(membership?.role || "");
+
+  useEffect(() => {
+    const handlePresence = (e: any) => {
+      if (Array.isArray(e.detail)) {
+        setOnlineUsers(e.detail);
+      }
+    };
+    window.addEventListener("on_presence_update", handlePresence);
+    return () => window.removeEventListener("on_presence_update", handlePresence);
+  }, []);
+
+  const onlineMembers = useMemo(() => {
+    if (!memberships?.data) return [];
+    return memberships.data.filter((m) => onlineUsers.includes(m.publicUserData.userId));
+  }, [memberships?.data, onlineUsers]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -115,8 +133,26 @@ export function Board() {
             {canManage ? "Drag to change status. Click a task to edit." : "Read-only view. Ask an admin for edit access."}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {isAnalyticsAllowed && (
+        <div className="flex items-center gap-4">
+          <div className="flex -space-x-2">
+            <TooltipProvider>
+              {onlineMembers.map((m) => (
+                <Tooltip key={m.id}>
+                  <TooltipTrigger asChild>
+                    <Avatar className="h-8 w-8 border-2 border-background cursor-pointer">
+                      <AvatarImage src={m.publicUserData.imageUrl} />
+                      <AvatarFallback className="text-xs">{m.publicUserData.identifier?.[0]?.toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{m.publicUserData.firstName || m.publicUserData.identifier}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </TooltipProvider>
+          </div>
+          <div className="flex items-center gap-2">
+            {isAnalyticsAllowed && (
             <Button variant="outline" onClick={() => setShowAnalytics(!showAnalytics)} className="gap-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">{showAnalytics ? "Hide Analytics" : "Show Analytics"}</span>
@@ -127,6 +163,7 @@ export function Board() {
               <Plus className="mr-1 h-4 w-4" /> New task
             </Button>
           )}
+        </div>
         </div>
       </div>
 

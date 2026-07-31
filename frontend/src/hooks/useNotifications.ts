@@ -73,6 +73,11 @@ export function useNotifications() {
               });
             } else if (data.type === "BOARD_UPDATED") {
               queryClient.invalidateQueries({ queryKey: ["tasks"] });
+            } else if (data.type === "PRESENCE_UPDATED") {
+              const event = new CustomEvent("on_presence_update", {
+                detail: data.online_users
+              });
+              window.dispatchEvent(event);
             }
           } catch (e) {
             console.error("Error parsing WS message:", e);

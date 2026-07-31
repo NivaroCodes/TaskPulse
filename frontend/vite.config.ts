@@ -4,4 +4,7 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  resolve: {
+    tsconfigPaths: true,
+  },
 });

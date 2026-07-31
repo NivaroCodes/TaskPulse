@@ -12,8 +12,11 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, Set[WebSocket]] = {}
         self.org_connections: Dict[str, Set[WebSocket]] = {}
+        self.org_presence: Dict[str, Set[str]] = {}
+        self.socket_roles: Dict[WebSocket, str] = {}
 
-    async def connect(self, websocket: WebSocket, user_id: str, org_id: str):
+
+    async def connect(self, websocket: WebSocket, user_id: str, org_id: str, role: str):
         await websocket.accept()
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
@@ -23,16 +26,29 @@ class ConnectionManager:
             self.org_connections[org_id] = set()
         self.org_connections[org_id].add(websocket)
 
+        self.socket_roles[websocket] = role
+
+        if org_id not in self.org_presence:
+            self.org_presence[org_id] = set()
+        self.org_presence[org_id].add(user_id)
+
     def disconnect(self, websocket: WebSocket, user_id: str, org_id: str):
+        if websocket in self.socket_roles:
+            del self.socket_roles[websocket]
+
         if user_id in self.active_connections:
             self.active_connections[user_id].discard(websocket)
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
-                
+
+                if org_id in self.org_presence:
+                    self.org_presence[org_id].discard(user_id)
+
         if org_id in self.org_connections:
             self.org_connections[org_id].discard(websocket)
             if not self.org_connections[org_id]:
                 del self.org_connections[org_id]
+
 
     async def send_personal_message(self, message: dict, user_id: str):
         if user_id in self.active_connections:
@@ -50,6 +66,27 @@ class ConnectionManager:
                     await connection.send_text(json.dumps(message))
                 except Exception:
                     self.org_connections[org_id].discard(connection)
+
+    async def broadcast_presence(self, org_id: str):
+        online_users = list(self.org_presence.get(org_id, set()))
+
+        message = {
+            "type": "PRESENCE_UPDATED",
+            "online_users": online_users
+        }
+
+        if org_id in self.org_connections:
+            connections = list(self.org_connections[org_id])
+            for connection in connections:
+
+                role = self.socket_roles.get(connection, "member")
+
+                if role == "admin":
+                    try:
+                        await connection.send_text(json.dumps(message))
+                    except Exception:
+                        self.org_connections[org_id].discard(connection)
+
 
 manager = ConnectionManager()
 
@@ -74,19 +111,23 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
         claims = request_state.payload
         user_id = claims.get("sub")
         org_id = claims.get("org_id") or claims.get("o", {}).get("id")
-        
+
+        org_role = claims.get("org_role") or claims.get("o", {}).get("rol", "member")
+
         if not user_id or not org_id:
             await websocket.close(code=1008)
             return
             
-        await manager.connect(websocket, user_id, org_id)
-        
+        await manager.connect(websocket, user_id, org_id, org_role)
+
+        await manager.broadcast_presence(org_id)
+
         try:
             while True:
                 data = await websocket.receive_text()
         except WebSocketDisconnect:
             manager.disconnect(websocket, user_id, org_id)
-            
+            await manager.broadcast_presence(org_id)
     except Exception as e:
         print(f"WebSocket auth error: {e}")
         await websocket.close(code=1008)

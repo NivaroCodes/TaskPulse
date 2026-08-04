@@ -51,8 +51,8 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="mx-auto mt-16 max-w-5xl"
         >
-          <div className="rounded-xl border border-border/60 bg-card/60 p-2 shadow-2xl shadow-primary/10">
-            <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-xl border border-border/60 bg-card/60 p-2 sm:p-4 shadow-2xl shadow-primary/10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
               {["To do", "In progress", "Done"].map((col, i) => (
                 <div key={col} className="rounded-lg border border-border/60 bg-background/60 p-3">
                   <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground">

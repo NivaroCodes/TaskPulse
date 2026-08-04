@@ -136,17 +136,25 @@ The TaskPulse Team
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation has expired")
             
         try:
+            await self.subscription_service.check_can_invite_member(invitation.organization_id)
             await self.clerk_client.organization_memberships.create_async(
                 organization_id=invitation.organization_id,
                 user_id=invited_user_id,
                 role=invitation.role
             )
+        except HTTPException as he:
+            raise he
         except Exception as e:
             error_msg = str(e)
             if "already a member" in error_msg or "already_a_member_in_organization" in error_msg:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST, 
                     detail="You are already a member of this organization."
+                )
+            elif "quota exceeded" in error_msg or "organization_membership_quota_exceeded" in error_msg:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Organization membership limit reached. Please upgrade your organization's plan to add more members."
                 )
             else:
                 raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to add to organization: {error_msg}")

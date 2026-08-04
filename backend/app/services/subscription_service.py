@@ -30,6 +30,16 @@ class SubscriptionService:
         plan = await self.get_org_plan(org_id)
         max_members = PLAN_LIMITS[plan]["max_members"]
         
+        target_limit = 100 if max_members == float('inf') else int(max_members)
+        try:
+            await asyncio.to_thread(
+                clerk.organizations.update,
+                organization_id=org_id,
+                max_allowed_memberships=target_limit
+            )
+        except Exception:
+            pass
+        
         if max_members == float('inf'):
             return
             

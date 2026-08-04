@@ -23,4 +23,7 @@ class Config:
     FREE_TIER_MEMBERSHIP_LIMIT: int = 2
     PRO_TIER_MEMBERSHIP_LIMIT = 0
 
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+
+
 settings = Config()

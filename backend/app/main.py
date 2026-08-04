@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api import tasks, webhooks, invitations, organizations, payments, analytics, websockets
+from app.api import tasks, webhooks, invitations, organizations, payments, analytics, websockets, ai
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -49,3 +49,4 @@ app.include_router(organizations.router)
 app.include_router(payments.router)
 app.include_router(analytics.router)
 app.include_router(websockets.router)
+app.include_router(ai.router)

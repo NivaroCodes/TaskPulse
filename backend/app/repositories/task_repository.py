@@ -38,8 +38,7 @@ class TaskRepository:
         )
         self.db.add(new_task)
         await self.db.commit()
-        await self.db.refresh(new_task)
-        return new_task
+        return await self.get_by_id(new_task.id, org_id)
 
     async def update(self, task: Task, task_data: TaskUpdate) -> Task:
         update_data = task_data.model_dump(exclude_unset=True)
@@ -47,8 +46,7 @@ class TaskRepository:
             setattr(task, key, value)
         
         await self.db.commit()
-        await self.db.refresh(task)
-        return task
+        return await self.get_by_id(task.id, task.org_id)
 
     async def delete(self, task: Task) -> None:
         await self.db.delete(task)

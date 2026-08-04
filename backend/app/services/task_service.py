@@ -36,7 +36,7 @@ class TaskService:
             
         task = await self.task_repository.create(task_data, user_id, org_id)
         await self._log_activity(task.id, user_id, org_id, "Created task", f"Title: {task.title}")
-        return task
+        return await self.get_task_by_id(task.id, org_id)
 
     async def update_task(self, task_id: str, task_data: TaskUpdate, user_id: str, org_id: str) -> Task:
         task = await self.task_repository.get_by_id(task_id, org_id)
@@ -58,12 +58,12 @@ class TaskService:
         if task_data.due_date is not None and task_data.due_date != task.due_date:
             changes.append(f"Due date changed to {task_data.due_date.date()}")
             
-        updated_task = await self.task_repository.update(task, task_data)
+        await self.task_repository.update(task, task_data)
         
         if changes:
             await self._log_activity(task_id, user_id, org_id, "Updated task", ", ".join(changes))
             
-        return updated_task
+        return await self.get_task_by_id(task_id, org_id)
 
     async def delete_task(self, task_id: str, user_id: str, org_id: str) -> None:
         task = await self.task_repository.get_by_id(task_id, org_id)
@@ -79,6 +79,7 @@ class TaskService:
         await self.task_repository.db.commit()
         await self.task_repository.db.refresh(subtask)
         await self._log_activity(task_id, user_id, org_id, "Added subtask", f"Title: {subtask.title}")
+        await self.task_repository.db.refresh(subtask)
         return subtask
 
     async def update_subtask(self, task_id: str, subtask_id: str, subtask_data: SubtaskUpdate, user_id: str, org_id: str) -> Subtask:
@@ -117,6 +118,7 @@ class TaskService:
         await self.task_repository.db.commit()
         await self.task_repository.db.refresh(comment)
         await self._log_activity(task_id, user_id, org_id, "Added comment", comment.content)
+        await self.task_repository.db.refresh(comment)
         return comment
 
     async def get_task_activity(self, task_id: str, org_id: str) -> List[ActivityLog]:

@@ -31,7 +31,7 @@ class InvitationService:
 
         existing_invite = await self.invitation_repository.get_pending_invitation_by_email(organization_id, recipient_email)
         if existing_invite:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A pending invitation has already been sent to this email.")
+            await self.invitation_repository.delete_invitation(existing_invite)
 
         expires_at = datetime.now(UTC) + timedelta(hours=24)
         
@@ -93,13 +93,20 @@ The TaskPulse Team
         </html>
         """
 
-        await self.email_sender(
-            to_email=recipient_email,
-            subject="You have been invited to join TaskPulse",
-            body=email_body,
-            html_body=email_html
-        )
-        
+        try:
+            await self.email_sender(
+                to_email=recipient_email,
+                subject="You have been invited to join TaskPulse",
+                body=email_body,
+                html_body=email_html
+            )
+        except Exception as e:
+            await self.invitation_repository.delete_invitation(invitation)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to send email: {str(e)}"
+            )
+
         return invitation
 
     async def approve_invitation(self, invitation_id: str, approver_user_id: str) -> Invitation:

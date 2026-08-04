@@ -19,8 +19,8 @@ async def can_create_organization(
     """
     try:
         memberships = await asyncio.to_thread(clerk.users.get_organization_memberships, user_id=user.id, limit=100)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to fetch user organizations from Clerk")
+    except Exception:
+        return {"can_create": True}
 
     admin_org_ids = []
     if hasattr(memberships, 'data'):

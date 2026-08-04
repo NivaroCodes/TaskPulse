@@ -112,3 +112,20 @@ export const analyticsApi = {
   get: (getToken: GetToken, orgId: string) =>
     request<any>(`/api/analytics/${orgId}`, { method: "GET" }, getToken, orgId),
 };
+
+export const aiApi = {
+  generateSubtasks: (getToken: GetToken, orgId: string, data: { title: string; description?: string }) =>
+    request<{ subtasks: string[] }>(
+      "/api/ai/generate-subtasks",
+      { method: "POST", body: JSON.stringify(data) },
+      getToken,
+      orgId,
+    ),
+  improveText: (getToken: GetToken, orgId: string, data: { text: string }) =>
+    request<{ improved_text: string }>(
+      "/api/ai/improve-text",
+      { method: "POST", body: JSON.stringify(data) },
+      getToken,
+      orgId,
+    ),
+};

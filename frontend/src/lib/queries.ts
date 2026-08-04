@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { tasksApi, invitationsApi, organizationsApi, analyticsApi } from "./api";
+import { tasksApi, invitationsApi, organizationsApi, analyticsApi, aiApi } from "./api";
 import type { Task, TaskCreate, TaskUpdate } from "./tasks";
 import type { InvitationCreate, Invitation } from "./invitations";
 
@@ -155,3 +155,23 @@ export function useDeclineInvitation() {
     onError: (e: Error) => toast.error(e.message),
   });
 }
+
+export function useGenerateSubtasks() {
+  const { getToken } = useAuth();
+  const orgId = useOrgId();
+  return useMutation({
+    mutationFn: (data: { title: string; description?: string }) =>
+      aiApi.generateSubtasks(getToken, orgId!, data),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useImproveText() {
+  const { getToken } = useAuth();
+  const orgId = useOrgId();
+  return useMutation({
+    mutationFn: (data: { text: string }) =>
+      aiApi.improveText(getToken, orgId!, data),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}

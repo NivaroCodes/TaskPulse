@@ -27,9 +27,11 @@ import { ActivityLogSection } from "./activity-log";
 import { Calendar } from "../ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
+import { useImproveText } from "../../lib/queries";
+import { toast } from "sonner";
 
 export function TaskDialog({
   open,
@@ -52,8 +54,26 @@ export function TaskDialog({
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [assignee, setAssignee] = useState<string>("unassigned");
   const [dueDate, setDueDate] = useState<string>("");
+  const [isImproving, setIsImproving] = useState(false);
 
+  const improveText = useImproveText();
   const { memberships, isLoaded } = useOrganization({ memberships: true });
+
+  const handleAiImprove = async () => {
+    if (!description.trim()) return;
+    setIsImproving(true);
+    try {
+      const res = await improveText.mutateAsync({ text: description });
+      if (res && res.improved_text) {
+        setDescription(res.improved_text);
+        toast.success("Description polished by AI ✨");
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsImproving(false);
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -96,7 +116,20 @@ export function TaskDialog({
             <Input id="title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ship v2 release" required />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="description">Description</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="description">Description</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isImproving || !description.trim()}
+                onClick={handleAiImprove}
+                className="h-6 text-[11px] font-semibold bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-teal-500/10 hover:from-blue-500/20 hover:via-cyan-500/20 hover:to-teal-500/20 border-cyan-500/30 text-cyan-600 dark:text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)] hover:shadow-[0_0_16px_rgba(6,182,212,0.4)] transition-all duration-300 rounded-full px-2.5"
+              >
+                <Sparkles className={`h-3 w-3 mr-1 text-cyan-500 ${isImproving ? "animate-spin" : "animate-pulse"}`} />
+                {isImproving ? "Polishing..." : "AI Polish"}
+              </Button>
+            </div>
             <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Notes, context, links..." rows={4} />
           </div>
           <div className="grid grid-cols-2 gap-3">

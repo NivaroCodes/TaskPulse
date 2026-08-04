@@ -16,31 +16,31 @@ export function useOrgId(): string | null {
 }
 
 export function useOrgPlan() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const orgId = useOrgId();
   return useQuery<{ plan: string }>({
     queryKey: ["orgPlan", orgId],
-    enabled: !!orgId,
+    enabled: isLoaded && isSignedIn && !!orgId,
     queryFn: () => organizationsApi.getPlan(getToken, orgId!),
   });
 }
 
 export function useAnalytics() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const orgId = useOrgId();
   return useQuery<any>({
     queryKey: ["analytics", orgId],
-    enabled: !!orgId,
+    enabled: isLoaded && isSignedIn && !!orgId,
     queryFn: () => analyticsApi.get(getToken, orgId!),
   });
 }
 
 export function useTasks() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const orgId = useOrgId();
   return useQuery<Task[]>({
     queryKey: ["tasks", orgId],
-    enabled: !!orgId,
+    enabled: isLoaded && isSignedIn && !!orgId,
     queryFn: () => tasksApi.list(getToken, orgId!),
   });
 }

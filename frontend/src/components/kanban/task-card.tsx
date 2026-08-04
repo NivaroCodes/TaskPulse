@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil, Trash2, Calendar, CheckSquare, MessageSquare } from "lucide-react";
@@ -35,6 +36,7 @@ export function TaskCard({
   onEdit: (t: Task) => void;
   onDelete: (t: Task) => void;
 }) {
+  const [subtaskOpen, setSubtaskOpen] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     disabled: !canManage,
@@ -72,16 +74,28 @@ export function TaskCard({
     }
   }
 
-  const completedSubtasks = task.subtasks?.filter(s => s.is_completed).length || 0;
-  const totalSubtasks = task.subtasks?.length || 0;
-  const totalComments = task.comments?.length || 0;
+  const uniqueSubtasks = task.subtasks ? Array.from(new Map(task.subtasks.map((s) => [s.id, s])).values()) : [];
+  const uniqueComments = task.comments ? Array.from(new Map(task.comments.map((c) => [c.id, c])).values()) : [];
+  const completedSubtasks = uniqueSubtasks.filter((s) => s.is_completed).length;
+  const totalSubtasks = uniqueSubtasks.length;
+  const totalComments = uniqueComments.length;
+
+  const cleanDescription = task.description
+    ? task.description
+        .replace(/#{1,6}\s+/g, "")
+        .replace(/(\*{1,2}|_{1,2}|`+)/g, "")
+        .replace(/-\s+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+    : "";
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...(canManage ? attributes : {})}
+      {...attributes}
       {...(canManage ? listeners : {})}
+      onClick={() => onEdit(task)}
       className={cn(
         "group relative rounded-lg border border-border/60 bg-card p-3 text-sm transition hover:border-primary/40",
         canManage && "cursor-grab active:cursor-grabbing",
@@ -92,8 +106,8 @@ export function TaskCard({
 
         <div className="min-w-0 flex-1">
           <div className="font-medium leading-snug">{task.title}</div>
-          {task.description && (
-            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{task.description}</p>
+          {cleanDescription && (
+            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{cleanDescription}</p>
           )}
           <div className="mt-2 flex items-center gap-1.5">
             {task.priority && (
@@ -114,9 +128,16 @@ export function TaskCard({
             )}
             
             {totalSubtasks > 0 && (
-              <Popover>
+              <Popover open={subtaskOpen} onOpenChange={setSubtaskOpen}>
                 <PopoverTrigger asChild>
-                  <button className="flex items-center gap-1 h-5 px-1.5 rounded-md border border-border/60 bg-muted/30 text-[10px] font-medium text-muted-foreground hover:bg-muted/50 transition">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSubtaskOpen(o => !o);
+                    }}
+                    className="flex items-center gap-1 h-5 px-1.5 rounded-md border border-border/60 bg-muted/30 text-[10px] font-medium text-muted-foreground hover:bg-muted/70 transition"
+                  >
                     <CheckSquare className="w-3 h-3" />
                     {completedSubtasks}/{totalSubtasks}
                   </button>
@@ -125,7 +146,7 @@ export function TaskCard({
                   <div className="space-y-2">
                     <h4 className="font-medium text-sm border-b pb-1">Subtasks</h4>
                     <ul className="space-y-2 mt-2">
-                      {task.subtasks?.map(st => (
+                      {uniqueSubtasks.map(st => (
                         <li key={st.id} className="flex items-center gap-2">
                           <Checkbox 
                             checked={st.is_completed} 
@@ -155,7 +176,7 @@ export function TaskCard({
                   <div className="space-y-2">
                     <h4 className="font-medium text-sm border-b pb-1">Comments</h4>
                     <div className="space-y-3 mt-2 max-h-[200px] overflow-y-auto">
-                      {task.comments?.map(comment => {
+                      {uniqueComments.map(comment => {
                         const commenter = memberships?.find((m: any) => m.publicUserData.userId === comment.user_id)?.publicUserData;
                         const name = commenter ? `${commenter.firstName} ${commenter.lastName}` : "Unknown";
                         return (

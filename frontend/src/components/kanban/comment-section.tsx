@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth, useOrganization } from "@clerk/tanstack-react-start";
 import { tasksApi } from "../../lib/api";
 import { Task } from "../../lib/tasks";
-import { Textarea } from "../ui/textarea";
+import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Send } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -14,7 +14,7 @@ export function CommentSection({ task }: { task: Task }) {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const comments = task.comments || [];
+  const comments = Array.from(new Map((task.comments || []).map((c) => [c.id, c])).values());
 
   const getUserName = (userId: string) => {
     const member = memberships?.data?.find(m => m.publicUserData.userId === userId);
@@ -69,8 +69,8 @@ export function CommentSection({ task }: { task: Task }) {
         )}
       </div>
 
-      <div className="flex items-start gap-1.5 pt-1 border-t border-border/40">
-        <Textarea 
+      <div className="flex items-center gap-1.5 pt-1 border-t border-border/40">
+        <Input 
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           onKeyDown={(e) => {
@@ -80,16 +80,17 @@ export function CommentSection({ task }: { task: Task }) {
             }
           }}
           placeholder="Write a comment..." 
-          className="h-7 min-h-[28px] max-h-[70px] text-xs resize-y rounded-lg border-border/60 focus:border-primary/50 py-1"
+          className="h-8 text-xs rounded-lg border-border/60 focus:border-primary/50"
         />
         <Button 
           type="button" 
           onClick={handleAdd}
           size="sm" 
           disabled={!newComment.trim() || isSubmitting} 
-          className="h-7 px-2.5 rounded-lg shrink-0"
+          className="h-8 px-3 rounded-lg shrink-0 gap-1 text-xs font-semibold"
         >
           <Send className="h-3.5 w-3.5" />
+          <span>Post</span>
         </Button>
       </div>
     </div>

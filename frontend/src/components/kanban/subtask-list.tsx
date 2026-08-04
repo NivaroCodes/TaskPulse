@@ -20,7 +20,8 @@ export function SubtaskList({ task }: { task: Task }) {
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || []);
 
   useEffect(() => {
-    setSubtasks(task.subtasks || []);
+    const list = task.subtasks || [];
+    setSubtasks(Array.from(new Map(list.map((s) => [s.id, s])).values()));
   }, [task.subtasks]);
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -32,7 +33,10 @@ export function SubtaskList({ task }: { task: Task }) {
     try {
       const created = await tasksApi.createSubtask(getToken, orgId, task.id, { title: tempTitle });
       if (created) {
-        setSubtasks((prev) => [...prev, created]);
+        setSubtasks((prev) => {
+          if (prev.some((s) => s.id === created.id)) return prev;
+          return [...prev, created];
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     } catch (e) {
@@ -59,7 +63,13 @@ export function SubtaskList({ task }: { task: Task }) {
             if (created) added.push(created);
           }
         }
-        setSubtasks((prev) => [...prev, ...added]);
+        setSubtasks((prev) => {
+          const map = new Map(prev.map((s) => [s.id, s]));
+          for (const item of added) {
+            map.set(item.id, item);
+          }
+          return Array.from(map.values());
+        });
         queryClient.invalidateQueries({ queryKey: ["tasks"] });
         toast.success("AI generated subtasks! ✨");
       }
@@ -120,13 +130,15 @@ export function SubtaskList({ task }: { task: Task }) {
     }
   };
 
+  const uniqueSubtasks = Array.from(new Map(subtasks.map((s) => [s.id, s])).values());
+
   return (
     <div className="flex flex-col h-full rounded-xl border border-border/60 bg-gradient-to-br from-background via-muted/10 to-background p-3 shadow-xs space-y-3">
       <div className="flex items-center justify-between pb-2 border-b border-border/40">
         <div className="flex items-center gap-1.5">
           <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Subtasks</h4>
           <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded-full font-bold">
-            {subtasks.filter(s => s.is_completed).length}/{subtasks.length}
+            {uniqueSubtasks.filter(s => s.is_completed).length}/{uniqueSubtasks.length}
           </span>
         </div>
         <Button
@@ -143,9 +155,9 @@ export function SubtaskList({ task }: { task: Task }) {
       </div>
 
       <div className="flex-1 min-h-[110px] max-h-[170px] overflow-y-auto pr-1 space-y-1">
-        {subtasks.length > 0 ? (
+        {uniqueSubtasks.length > 0 ? (
           <ul className="space-y-1">
-            {subtasks.map((st) => (
+            {uniqueSubtasks.map((st) => (
               <li key={st.id} className="flex items-center gap-2 p-1 rounded-md hover:bg-muted/50 border border-transparent hover:border-border/50 transition-all duration-150 group">
                 <Checkbox
                   checked={st.is_completed}

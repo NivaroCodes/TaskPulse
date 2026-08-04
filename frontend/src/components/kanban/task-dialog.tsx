@@ -93,7 +93,7 @@ export function TaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-[740px] max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === "create" ? "New task" : "Edit task"}</DialogTitle>
           <DialogDescription>

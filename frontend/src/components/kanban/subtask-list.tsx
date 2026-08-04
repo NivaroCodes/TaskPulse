@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { tasksApi } from "../../lib/api";
 import { Subtask, Task } from "../../lib/tasks";
@@ -17,19 +17,27 @@ export function SubtaskList({ task }: { task: Task }) {
   const [newTitle, setNewTitle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || []);
 
-  const subtasks = task.subtasks || [];
+  useEffect(() => {
+    setSubtasks(task.subtasks || []);
+  }, [task.subtasks]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !orgId) return;
+    const tempTitle = newTitle.trim();
+    setNewTitle("");
     setIsSubmitting(true);
     try {
-      await tasksApi.createSubtask(getToken, orgId, task.id, { title: newTitle.trim() });
-      setNewTitle("");
+      const created = await tasksApi.createSubtask(getToken, orgId, task.id, { title: tempTitle });
+      if (created) {
+        setSubtasks((prev) => [...prev, created]);
+      }
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     } catch (e) {
       console.error(e);
+      setNewTitle(tempTitle);
     } finally {
       setIsSubmitting(false);
     }
@@ -44,11 +52,14 @@ export function SubtaskList({ task }: { task: Task }) {
         description: task.description ?? undefined,
       });
       if (res && res.subtasks) {
+        const added: Subtask[] = [];
         for (const stTitle of res.subtasks) {
           if (stTitle.trim()) {
-            await tasksApi.createSubtask(getToken, orgId, task.id, { title: stTitle.trim() });
+            const created = await tasksApi.createSubtask(getToken, orgId, task.id, { title: stTitle.trim() });
+            if (created) added.push(created);
           }
         }
+        setSubtasks((prev) => [...prev, ...added]);
         queryClient.invalidateQueries({ queryKey: ["tasks"] });
         toast.success("AI generated subtasks! ✨");
       }
@@ -61,90 +72,139 @@ export function SubtaskList({ task }: { task: Task }) {
 
   const handleToggle = async (subtask: Subtask, checked: boolean) => {
     if (!orgId) return;
+    setSubtasks((prev) =>
+      prev.map((st) => (st.id === subtask.id ? { ...st, is_completed: checked } : st))
+    );
+    queryClient.setQueryData(["tasks"], (old: unknown) => {
+      if (!Array.isArray(old)) return old;
+      return old.map((t: Task) =>
+        t.id === task.id
+          ? {
+              ...t,
+              subtasks: (t.subtasks || []).map((st: Subtask) =>
+                st.id === subtask.id ? { ...st, is_completed: checked } : st
+              ),
+            }
+          : t
+      );
+    });
     try {
       await tasksApi.updateSubtask(getToken, orgId, task.id, subtask.id, { is_completed: checked });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     } catch (e) {
       console.error(e);
+      setSubtasks(task.subtasks || []);
     }
   };
 
   const handleDelete = async (subtaskId: string) => {
     if (!orgId) return;
+    setSubtasks((prev) => prev.filter((st) => st.id !== subtaskId));
+    queryClient.setQueryData(["tasks"], (old: unknown) => {
+      if (!Array.isArray(old)) return old;
+      return old.map((t: Task) =>
+        t.id === task.id
+          ? {
+              ...t,
+              subtasks: (t.subtasks || []).filter((st: Subtask) => st.id !== subtaskId),
+            }
+          : t
+      );
+    });
     try {
       await tasksApi.removeSubtask(getToken, orgId, task.id, subtaskId);
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     } catch (e) {
       console.error(e);
+      setSubtasks(task.subtasks || []);
     }
   };
 
   return (
-    <div className="space-y-3 mt-4 pt-4 border-t border-border">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium">Subtasks</h4>
+    <div className="flex flex-col h-full rounded-xl border border-border/60 bg-gradient-to-br from-background via-muted/10 to-background p-3 shadow-xs space-y-3">
+      <div className="flex items-center justify-between pb-2 border-b border-border/40">
+        <div className="flex items-center gap-1.5">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Subtasks</h4>
+          <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded-full font-bold">
+            {subtasks.filter(s => s.is_completed).length}/{subtasks.length}
+          </span>
+        </div>
         <Button
           type="button"
           variant="outline"
           size="sm"
           disabled={isGenerating || !task.title}
           onClick={handleAiGenerate}
-          className="h-7 text-xs font-semibold bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-pink-500/10 hover:from-violet-500/20 hover:via-purple-500/20 hover:to-pink-500/20 border-purple-500/30 text-purple-600 dark:text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)] hover:shadow-[0_0_16px_rgba(168,85,247,0.4)] transition-all duration-300 rounded-full px-3"
+          className="h-6 text-[11px] font-semibold bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-pink-500/10 hover:from-violet-500/20 hover:via-purple-500/20 hover:to-pink-500/20 border-purple-500/30 text-purple-600 dark:text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)] hover:shadow-[0_0_16px_rgba(168,85,247,0.4)] transition-all duration-300 rounded-full px-2.5 shrink-0"
         >
-          <Sparkles className={`h-3.5 w-3.5 mr-1.5 text-purple-500 ${isGenerating ? "animate-spin" : "animate-pulse"}`} />
-          {isGenerating ? "Thinking..." : "AI Auto-generate"}
+          <Sparkles className={`h-3 w-3 mr-1 text-purple-500 ${isGenerating ? "animate-spin" : "animate-pulse"}`} />
+          {isGenerating ? "Thinking..." : "AI Auto"}
         </Button>
       </div>
-      
-      {subtasks.length > 0 && (
-        <ul className="space-y-2">
-          {subtasks.map(st => (
-            <li key={st.id} className="flex items-center gap-2 group">
-              <Checkbox 
-                checked={st.is_completed} 
-                onCheckedChange={(c) => handleToggle(st, !!c)}
-                className="h-4 w-4"
-              />
-              <span className={`flex-1 text-sm ${st.is_completed ? 'line-through text-muted-foreground' : ''}`}>
-                {st.title}
-              </span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                onClick={() => handleDelete(st.id)}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
 
-      <div className="flex items-center gap-2">
-        <Input 
+      <div className="flex-1 min-h-[110px] max-h-[170px] overflow-y-auto pr-1 space-y-1">
+        {subtasks.length > 0 ? (
+          <ul className="space-y-1">
+            {subtasks.map((st) => (
+              <li key={st.id} className="flex items-center gap-2 p-1 rounded-md hover:bg-muted/50 border border-transparent hover:border-border/50 transition-all duration-150 group">
+                <Checkbox
+                  checked={st.is_completed}
+                  onCheckedChange={(c) => handleToggle(st, !!c)}
+                  className="h-3.5 w-3.5 rounded-[3px] border-primary/40 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 transition-all shrink-0 cursor-pointer"
+                />
+                <span
+                  onClick={() => handleToggle(st, !st.is_completed)}
+                  className={`flex-1 text-xs leading-tight select-none cursor-pointer break-words transition-all ${
+                    st.is_completed ? "line-through text-muted-foreground opacity-60 font-normal" : "text-foreground/90 font-medium"
+                  }`}
+                >
+                  {st.title}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-150 rounded-sm shrink-0"
+                  onClick={() => handleDelete(st.id)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex items-center justify-center h-[90px] text-xs text-muted-foreground/60 italic border border-dashed border-border/40 rounded-lg">
+            No subtasks yet. Add one or click AI Auto! ✨
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-1.5 pt-1 border-t border-border/40">
+        <Input
           value={newTitle}
-          onChange={e => setNewTitle(e.target.value)}
+          onChange={(e) => setNewTitle(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
               handleAdd(e);
             }
           }}
-          placeholder="Add a subtask..." 
-          className="h-8 text-sm"
+          placeholder="New subtask..."
+          className="h-7 text-xs rounded-lg border-border/60 focus:border-purple-500/50"
         />
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           onClick={handleAdd}
-          size="sm" 
-          variant="secondary" 
+          size="sm"
+          variant="secondary"
           disabled={!newTitle.trim() || isSubmitting}
+          className="h-7 text-xs px-2.5 font-medium rounded-lg shrink-0"
         >
-          <Plus className="h-4 w-4 mr-1" /> Add
+          <Plus className="h-3.5 w-3.5 mr-0.5" /> Add
         </Button>
       </div>
     </div>
   );
 }
+
 

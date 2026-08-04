@@ -205,7 +205,7 @@ export function Board() {
         mode={dialog?.mode ?? "create"}
         initial={
           dialog?.mode === "edit"
-            ? dialog.task
+            ? tasks?.find((t) => t.id === dialog.task.id) ?? dialog.task
             : dialog?.mode === "create"
             ? { status: dialog.status }
             : undefined

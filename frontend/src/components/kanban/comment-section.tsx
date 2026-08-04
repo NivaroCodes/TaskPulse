@@ -38,29 +38,41 @@ export function CommentSection({ task }: { task: Task }) {
   };
 
   return (
-    <div className="space-y-3 mt-4 pt-4 border-t border-border">
-      <h4 className="text-sm font-medium">Comments</h4>
+    <div className="flex flex-col h-full rounded-xl border border-border/60 bg-gradient-to-br from-background via-muted/10 to-background p-3 shadow-xs space-y-3">
+      <div className="flex items-center justify-between pb-2 border-b border-border/40">
+        <div className="flex items-center gap-1.5">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Comments</h4>
+          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold">
+            {comments.length}
+          </span>
+        </div>
+      </div>
       
-      {comments.length > 0 && (
-        <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
-          {comments.map(comment => (
-            <div key={comment.id} className="bg-muted/50 p-2 rounded-md text-sm">
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-medium text-xs">{getUserName(comment.user_id)}</span>
-                <span className="text-[10px] text-muted-foreground">
-                  {new Date(comment.created_at).toLocaleString()}
+      <div className="flex-1 min-h-[110px] max-h-[170px] overflow-y-auto pr-1 space-y-2">
+        {comments.length > 0 ? (
+          comments.map((comment) => (
+            <div key={comment.id} className="bg-muted/60 hover:bg-muted/80 p-2 rounded-lg border border-border/30 transition-colors text-xs space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-[11px] text-primary">{getUserName(comment.user_id)}</span>
+                <span className="text-[10px] text-muted-foreground/70">
+                  {new Date(comment.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })},{" "}
+                  {new Date(comment.created_at).toLocaleDateString()}
                 </span>
               </div>
-              <p className="whitespace-pre-wrap">{comment.content}</p>
+              <p className="whitespace-pre-wrap text-foreground/90 leading-relaxed text-xs">{comment.content}</p>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        ) : (
+          <div className="flex items-center justify-center h-[90px] text-xs text-muted-foreground/60 italic border border-dashed border-border/40 rounded-lg">
+            No comments yet. Start a discussion! 💬
+          </div>
+        )}
+      </div>
 
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-1.5 pt-1 border-t border-border/40">
         <Textarea 
           value={newComment}
-          onChange={e => setNewComment(e.target.value)}
+          onChange={(e) => setNewComment(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -68,18 +80,19 @@ export function CommentSection({ task }: { task: Task }) {
             }
           }}
           placeholder="Write a comment..." 
-          className="min-h-[60px] text-sm resize-none"
+          className="h-7 min-h-[28px] max-h-[70px] text-xs resize-y rounded-lg border-border/60 focus:border-primary/50 py-1"
         />
         <Button 
           type="button" 
           onClick={handleAdd}
           size="sm" 
           disabled={!newComment.trim() || isSubmitting} 
-          className="mt-1"
+          className="h-7 px-2.5 rounded-lg shrink-0"
         >
-          <Send className="h-4 w-4" />
+          <Send className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>
   );
 }
+

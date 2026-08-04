@@ -85,12 +85,11 @@ export function CommentSection({ task }: { task: Task }) {
         <Button 
           type="button" 
           onClick={handleAdd}
-          size="sm" 
+          size="icon" 
           disabled={!newComment.trim() || isSubmitting} 
-          className="h-8 px-3 rounded-lg shrink-0 gap-1 text-xs font-semibold"
+          className="h-8 w-8 rounded-lg shrink-0"
         >
           <Send className="h-3.5 w-3.5" />
-          <span>Post</span>
         </Button>
       </div>
     </div>

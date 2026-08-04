@@ -126,14 +126,14 @@ export function Board() {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight md:text-2xl">Board</h1>
           <p className="text-sm text-muted-foreground">
             {canManage ? "Drag to change status. Click a task to edit." : "Read-only view. Ask an admin for edit access."}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between sm:justify-end gap-3 flex-wrap">
           <div className="flex -space-x-2">
             <TooltipProvider>
               {onlineMembers.map((m) => (
@@ -172,7 +172,7 @@ export function Board() {
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:overflow-visible">
           {STATUSES.map((s) => (
-            <div key={s.id} className="snap-start">
+            <div key={s.id} className="snap-start min-w-[84vw] sm:min-w-[340px] md:min-w-0 md:w-auto shrink-0 md:shrink">
               {isLoading ? (
                 <ColumnSkeleton />
               ) : (

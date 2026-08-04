@@ -198,7 +198,7 @@ export function TaskDialog({
               <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Notes, context, links... or write rough keywords and click AI Polish!" rows={5} className="rounded-xl border-primary/20 focus:border-primary/50 text-xs leading-relaxed transition-all" />
             )}
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
@@ -223,7 +223,7 @@ export function TaskDialog({
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Assignee</Label>
               <Select value={assignee} onValueChange={setAssignee} disabled={!isLoaded}>
@@ -277,7 +277,7 @@ export function TaskDialog({
                   <TabsTrigger value="activity">Activity Log</TabsTrigger>
                 </TabsList>
                 <TabsContent value="details" className="mt-4">
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
                     <SubtaskList task={initial as Task} />
                     <CommentSection task={initial as Task} />
                   </div>

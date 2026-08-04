@@ -27,11 +27,12 @@ import { ActivityLogSection } from "./activity-log";
 import { Calendar } from "../ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CalendarIcon, Sparkles } from "lucide-react";
+import { CalendarIcon, Sparkles, Eye, Edit3 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import { useImproveText } from "../../lib/queries";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 export function TaskDialog({
   open,
@@ -55,6 +56,7 @@ export function TaskDialog({
   const [assignee, setAssignee] = useState<string>("unassigned");
   const [dueDate, setDueDate] = useState<string>("");
   const [isImproving, setIsImproving] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
 
   const improveText = useImproveText();
   const { memberships, isLoaded } = useOrganization({ memberships: true });
@@ -66,6 +68,7 @@ export function TaskDialog({
       const res = await improveText.mutateAsync({ text: description });
       if (res && res.improved_text) {
         setDescription(res.improved_text);
+        setIsPreview(true);
         toast.success("Description polished by AI ✨");
       }
     } catch (e) {
@@ -78,8 +81,10 @@ export function TaskDialog({
   useEffect(() => {
     if (!open) return;
     const asTask = initial as Task | undefined;
+    const initialDesc = asTask?.description ?? "";
     setTitle(asTask?.title ?? "");
-    setDescription(asTask?.description ?? "");
+    setDescription(initialDesc);
+    setIsPreview(mode === "edit" && !!initialDesc.trim());
     setStatus(((asTask?.status) ?? (initial as { status?: TaskStatus })?.status ?? "pending") as TaskStatus);
     setPriority((asTask?.priority ?? "medium") as TaskPriority);
     setAssignee(asTask?.assignee ?? "unassigned");
@@ -115,9 +120,34 @@ export function TaskDialog({
             <Label htmlFor="title">Title</Label>
             <Input id="title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ship v2 release" required />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="description">Description</Label>
+              <div className="flex items-center gap-2.5">
+                <Label htmlFor="description">Description</Label>
+                <div className="inline-flex rounded-lg bg-muted/60 p-0.5 text-muted-foreground border border-border/40">
+                  <button
+                    type="button"
+                    onClick={() => setIsPreview(false)}
+                    className={cn(
+                      "flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-md transition-all duration-200",
+                      !isPreview ? "bg-background text-foreground shadow-xs font-semibold" : "hover:text-foreground"
+                    )}
+                  >
+                    <Edit3 className="h-3 w-3" /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsPreview(true)}
+                    disabled={!description.trim()}
+                    className={cn(
+                      "flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-md transition-all duration-200 disabled:opacity-40",
+                      isPreview ? "bg-background text-foreground shadow-xs font-semibold text-primary" : "hover:text-foreground"
+                    )}
+                  >
+                    <Eye className="h-3 w-3" /> Preview
+                  </button>
+                </div>
+              </div>
               <Button
                 type="button"
                 variant="outline"
@@ -130,7 +160,43 @@ export function TaskDialog({
                 {isImproving ? "Polishing..." : "AI Polish"}
               </Button>
             </div>
-            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Notes, context, links..." rows={4} />
+            {isPreview && description.trim() ? (
+              <div 
+                onClick={() => setIsPreview(false)} 
+                title="Click anywhere to edit"
+                className="min-h-[120px] max-h-[280px] overflow-y-auto rounded-xl border border-primary/25 bg-gradient-to-br from-background/95 via-primary/[0.02] to-background p-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.03)] hover:border-primary/45 cursor-text transition-all duration-200 group relative"
+              >
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
+                  Click to edit
+                </div>
+                <ReactMarkdown
+                  components={{
+                    h3: ({ node, ...props }) => (
+                      <h3 className="text-xs font-extrabold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mt-3.5 mb-2 first:mt-0 flex items-center gap-1.5 border-b border-cyan-500/20 pb-1" {...props} />
+                    ),
+                    p: ({ node, ...props }) => (
+                      <p className="text-xs text-foreground/90 leading-relaxed my-1.5" {...props} />
+                    ),
+                    ul: ({ node, ...props }) => (
+                      <ul className="space-y-2 my-2 list-none pl-0.5" {...props} />
+                    ),
+                    li: ({ node, ...props }) => (
+                      <li className="flex items-start text-xs text-foreground/85 gap-2 before:content-['•'] before:text-cyan-500 before:font-black before:text-base before:leading-none before:-mt-0.5" {...props} />
+                    ),
+                    strong: ({ node, ...props }) => (
+                      <strong className="font-bold text-foreground bg-cyan-500/10 dark:bg-cyan-500/20 px-1.5 py-0.5 rounded text-[11px] border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 inline-block mr-1" {...props} />
+                    ),
+                    blockquote: ({ node, ...props }) => (
+                      <blockquote className="p-3 my-2.5 bg-cyan-500/10 border-l-4 border-cyan-500 rounded-r-xl text-xs text-foreground/90 italic shadow-xs flex flex-col gap-1" {...props} />
+                    ),
+                  }}
+                >
+                  {description}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Notes, context, links... or write rough keywords and click AI Polish!" rows={5} className="rounded-xl border-primary/20 focus:border-primary/50 text-xs leading-relaxed transition-all" />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">

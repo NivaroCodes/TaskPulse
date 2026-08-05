@@ -6,10 +6,11 @@ from app.core.clerk import clerk
 
 
 class AuthUser:
-    def __init__(self, user_id: str, org_id: str, org_permissions: list):
+    def __init__(self, user_id: str, org_id: str, org_permissions: list, role: str | None = None):
         self.user_id = user_id
         self.org_id = org_id
         self.org_permissions = org_permissions
+        self.role = role
 
     def has_permission(self, permission: str) -> bool:
         return permission in self.org_permissions
@@ -68,10 +69,23 @@ async def get_current_user(request: Request) -> AuthUser:
     org_permissions = [p if p.startswith("org:") else f"org:tasks:{p}" for p in org_permissions]
 
     org_role = claims.get("org_role") or claims.get("o", {}).get("rol")
-    if org_role == "admin":
+    if org_role in ["admin", "org:admin"]:
         org_permissions.extend([
             "org:tasks:view", "org:tasks:create", "org:tasks:edit", "org:tasks:delete", "org:tasks:manage",
-            "org:members:invite", "org:members:manage"
+            "org:members:invite", "org:members:manage", "org:billing:manage"
+        ])
+    elif org_role in ["project_manager", "org:project_manager"]:
+        org_permissions.extend([
+            "org:tasks:view", "org:tasks:create", "org:tasks:edit", "org:tasks:delete", "org:tasks:manage",
+            "org:members:invite"
+        ])
+    elif org_role in ["member", "org:member"]:
+        org_permissions.extend([
+            "org:tasks:view", "org:tasks:create", "org:tasks:edit"
+        ])
+    elif org_role in ["viewer", "org:viewer", "guest", "org:guest"]:
+        org_permissions.extend([
+            "org:tasks:view"
         ])
     
     org_permissions = list(set(org_permissions))
@@ -86,7 +100,7 @@ async def get_current_user(request: Request) -> AuthUser:
             status_code=status.HTTP_400_BAD_REQUEST, detail="No organization selected"
         )
 
-    return AuthUser(user_id=user_id, org_id=org_id, org_permissions=org_permissions)
+    return AuthUser(user_id=user_id, org_id=org_id, org_permissions=org_permissions, role=org_role)
 
 
 def require_view(user: AuthUser = Depends(get_current_user)) -> AuthUser:

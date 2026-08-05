@@ -15,3 +15,11 @@ class ImproveTextRequest(BaseModel):
 
 class ImproveTextResponse(BaseModel):
     improved_text: str
+
+
+class SprintInsightsRequest(BaseModel):
+    member_names: Optional[dict[str, str]] = None
+
+
+class SprintInsightsResponse(BaseModel):
+    insights: str

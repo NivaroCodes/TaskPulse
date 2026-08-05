@@ -44,7 +44,9 @@ async def create_task(
         }, task.assignee)
         
     await manager.broadcast_to_org({
-        "type": "BOARD_UPDATED"
+        "type": "TASK_CREATED",
+        "task": TaskResponse.model_validate(task).model_dump(mode="json"),
+        "sender_id": user.user_id
     }, user.org_id)
     return task
 
@@ -75,7 +77,11 @@ async def update_task(
             "assigner_id": user.user_id
         }, updated_task.assignee)
         
-    await manager.broadcast_to_org({"type": "BOARD_UPDATED"}, user.org_id)
+    await manager.broadcast_to_org({
+        "type": "TASK_UPDATED",
+        "task": TaskResponse.model_validate(updated_task).model_dump(mode="json"),
+        "sender_id": user.user_id
+    }, user.org_id)
     return updated_task
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -85,7 +91,11 @@ async def delete_task(
         task_service: TaskService = Depends(get_task_service)
 ):
     await task_service.delete_task(task_id, user.user_id, user.org_id)
-    await manager.broadcast_to_org({"type": "BOARD_UPDATED"}, user.org_id)
+    await manager.broadcast_to_org({
+        "type": "TASK_DELETED",
+        "task_id": task_id,
+        "sender_id": user.user_id
+    }, user.org_id)
     return None
 
 @router.post("/{task_id}/subtasks", response_model=SubtaskResponse)

@@ -70,4 +70,36 @@ async def improve_text(text: str) -> str:
 
     result_text = response.choices[0].message.content
     return result_text
+
+
+async def generate_sprint_insights(stats_summary: str) -> str:
+    response = await client.chat.completions.create(
+        model=MODEL_NAME,
+        temperature=0.3,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert AI Scrum Master, Agile Coach, and Technical Project Analyst for TaskPulse. "
+                    "Your objective is to provide an executive sprint summary, evaluate risk, and optimize team throughput based on provided organization data.\n\n"
+                    "RULES FOR FORMATTING AND TONE:\n"
+                    "1. Always respond in clean, highly structured Russian with a professional, sharp tech lead voice.\n"
+                    "2. CRITICAL LANGUAGE RULE: Never use literal translation calques or non-Cyrillic foreign symbols (e.g. NEVER use '瓶neck', always write 'узкие места' or 'проблемные зоны'). All Russian words must be written in standard Cyrillic typography without mixing Asian characters.\n"
+                    "3. Structure your response directly into Markdown using exactly these headings:\n"
+                    "   ### 📊 Общее состояние спринта\n"
+                    "   Provide an overall progress summary, calculate an estimated Sprint Health score (out of 100%), and comment on throughput.\n\n"
+                    "   ### ⚠️ Узкие места и риски\n"
+                    "   Analyze stalled tasks, overdue items, priority bottlenecks, or workload imbalance across team members. Use clean bullet points.\n\n"
+                    "   ### 💡 Рекомендации скрам-мастера\n"
+                    "   Provide 3-4 concrete, actionable steps to balance workloads, unblock critical path items, and secure deadline adherence.\n\n"
+                    "4. Do not include introductory conversational filler or concluding chatter outside the Markdown structure. Use exact human names from data."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"Team and sprint statistics data:\n{stats_summary}"
+            }
+        ]
+    )
+    return response.choices[0].message.content
 

@@ -130,4 +130,12 @@ export const aiApi = {
     ),
   getSprintInsights: (getToken: GetToken, orgId: string, data?: { member_names?: Record<string, string> }) =>
     request<{ insights: string }>("/api/ai/sprint-insights", { method: "POST", body: JSON.stringify(data ?? {}) }, getToken, orgId),
-};
+  parseTaskCommand: (getToken: GetToken, orgId: string, data: { prompt: string; current_date: string; members: Array<{ id: string; name: string }> }) =>
+    request<{ title: string; priority: string; due_date: string | null; assignee_id: string | null; assignee_name: string | null }>(
+      "/api/ai/parse-task",
+      { method: "POST", body: JSON.stringify(data) },
+      getToken,
+      orgId,
+    ),
+};
+

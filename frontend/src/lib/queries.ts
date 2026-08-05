@@ -191,4 +191,15 @@ export function useSprintInsights() {
       aiApi.getSprintInsights(getToken, orgId!, data),
     onError: (e: Error) => toast.error(e.message),
   });
-}
+}
+
+export function useParseTaskCommand() {
+  const { getToken } = useAuth();
+  const orgId = useOrgId();
+  return useMutation({
+    mutationFn: (data: { prompt: string; current_date: string; members: Array<{ id: string; name: string }> }) =>
+      aiApi.parseTaskCommand(getToken, orgId!, data),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+

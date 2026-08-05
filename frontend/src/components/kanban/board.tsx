@@ -35,7 +35,8 @@ import { Column } from "./column";
 import { TaskCard } from "./task-card";
 import { TaskDialog } from "./task-dialog";
 import { DashboardAnalytics } from "../analytics/dashboard-analytics";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Sparkles } from "lucide-react";
+import { AiCommandPalette } from "./ai-command-palette";
 
 type DialogState =
   | { mode: "create"; status: TaskStatus }
@@ -53,11 +54,25 @@ export function Board() {
   const [dialog, setDialog] = useState<{ mode: "create" | "edit"; task?: Task; status?: TaskStatus } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Task | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showAiPalette, setShowAiPalette] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
   const { membership, memberships } = useOrganization({ memberships: true });
   const isAnalyticsAllowed = ["org:admin", "org:project_manager"].includes(membership?.role || "");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        if (canManage) {
+          e.preventDefault();
+          setShowAiPalette((prev) => !prev);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [canManage]);
 
   useEffect(() => {
     const handlePresence = (e: any) => {
@@ -159,9 +174,25 @@ export function Board() {
             </Button>
           )}
           {canManage && (
-            <Button onClick={() => setDialog({ mode: "create", status: "pending" })}>
-              <Plus className="mr-1 h-4 w-4" /> New task
-            </Button>
+            <>
+              <button
+                type="button"
+                onClick={() => setShowAiPalette(true)}
+                className="group relative inline-flex items-center gap-2 px-3.5 py-1.5 h-9 rounded-full bg-zinc-900/90 hover:bg-zinc-900 border border-violet-500/30 hover:border-purple-400/60 shadow-[0_0_20px_rgba(139,92,246,0.15)] hover:shadow-[0_0_25px_rgba(168,85,247,0.3)] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+              >
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-500/10 via-indigo-500/10 to-pink-500/10 opacity-70 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <Sparkles className="h-3.5 w-3.5 text-purple-400 group-hover:text-pink-400 transition-colors animate-pulse" />
+                <span className="text-xs font-semibold text-zinc-100 tracking-wide group-hover:text-white transition-colors">
+                  AI Quick Create
+                </span>
+                <kbd className="hidden md:inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-mono font-medium rounded-full bg-white/10 text-zinc-300 group-hover:bg-white/15 transition-colors">
+                  ⌘K
+                </kbd>
+              </button>
+              <Button onClick={() => setDialog({ mode: "create", status: "pending" })}>
+                <Plus className="mr-1 h-4 w-4" /> New task
+              </Button>
+            </>
           )}
         </div>
         </div>
@@ -219,6 +250,16 @@ export function Board() {
             await update.mutateAsync({ id: dialog.task.id, data });
           }
           setDialog(null);
+        }}
+      />
+
+      <AiCommandPalette
+        open={showAiPalette}
+        onOpenChange={setShowAiPalette}
+        memberships={memberships?.data}
+        isCreating={create.isPending}
+        onConfirmCreate={async (taskData) => {
+          await create.mutateAsync(taskData as any);
         }}
       />
 

@@ -16,6 +16,8 @@ from app.schemas.ai import (
     ImproveTextResponse,
     SprintInsightsRequest,
     SprintInsightsResponse,
+    ParseTaskCommandRequest,
+    ParseTaskCommandResponse,
 )
 from app.services import ai_service
 
@@ -67,8 +69,8 @@ async def get_sprint_insights(
 
     def get_name(user_id: str | None) -> str:
         if not user_id:
-            return "Не назначено"
-        return name_map.get(user_id, f"Участник команды ({user_id[:6]})")
+            return "Unassigned"
+        return name_map.get(user_id, f"Team Member ({user_id[:6]})")
 
     tasks_result = await db.execute(select(Task).where(Task.org_id == user.org_id))
     tasks = tasks_result.scalars().all()
@@ -80,7 +82,7 @@ async def get_sprint_insights(
 
     now = datetime.now(UTC)
     overdue_tasks = [
-        f"Задача: '{t.title}', Исполнитель: {get_name(t.assignee)}"
+        f"Task: '{t.title}', Assignee: {get_name(t.assignee)}"
         for t in tasks
         if t.due_date and t.due_date < now and t.status != "completed"
     ]
@@ -98,7 +100,7 @@ async def get_sprint_insights(
         .limit(15)
     )
     logs = logs_result.scalars().all()
-    recent_actions = [f"Участник {get_name(l.user_id)} выполнил действие '{l.action}' в задаче {l.task_id[:8]}" for l in logs]
+    recent_actions = [f"Member {get_name(l.user_id)} performed action '{l.action}' on task {l.task_id[:8]}" for l in logs]
 
     stats_dict = {
         "total_tasks": total_tasks,
@@ -112,3 +114,16 @@ async def get_sprint_insights(
     summary_text = json.dumps(stats_dict, ensure_ascii=False, indent=2)
     insights = await ai_service.generate_sprint_insights(summary_text)
     return SprintInsightsResponse(insights=insights)
+
+
+@router.post("/parse-task", response_model=ParseTaskCommandResponse)
+async def parse_task_command(
+    request: ParseTaskCommandRequest,
+    user: AuthUser = Depends(get_current_user)
+):
+    result = await ai_service.parse_task_command(
+        prompt=request.prompt,
+        current_date=request.current_date,
+        members=request.members
+    )
+    return ParseTaskCommandResponse(**result)

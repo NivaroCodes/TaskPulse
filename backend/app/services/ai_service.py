@@ -120,4 +120,41 @@ async def generate_sprint_insights(stats_summary: str) -> str:
         ]
     )
     return response.choices[0].message.content
+
+
+async def parse_task_command(prompt: str, current_date: str, members: list[dict[str, str]]) -> dict:
+    members_text = json.dumps(members, ensure_ascii=False)
+    response = await client.chat.completions.create(
+        model=MODEL_NAME,
+        temperature=0.1,
+        response_format={"type": "json_object"},
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an elite AI Task Copilot for TaskPulse. Parse user natural language commands into structured JSON for task creation.\n\n"
+                    "RULES:\n"
+                    "1. LINGUISTIC PURITY & MIRRORING: Extract the clean task title in the EXACT SAME LANGUAGE as the user prompt (e.g., Russian or English). Remove scheduling dates, priority keywords, and assignee references from the title so it reads cleanly (e.g., if prompt is 'Сделать редизайн логина до пятницы для Анны срочно', title must be 'Сделать редизайн логина'). Never mix languages in the title.\n"
+                    "2. PRIORITY: Identify priority as 'urgent' (срочно/критично), 'high' (высокий/важно), 'medium', or 'low'. Default to 'medium' if unspecified.\n"
+                    f"3. DUE DATE: Calculate the exact due date in ISO 8601 format (YYYY-MM-DD) relative to the current date ({current_date}). If no time or date is indicated, set due_date to null.\n"
+                    f"4. ASSIGNEE: Match any reference to a team member (e.g., '@alex', 'на Анну', 'for Sarah') against the available members list: {members_text}. Return the exact member 'id' as assignee_id and 'name' as assignee_name, or null if unmentioned or unresolved.\n"
+                    "5. Respond ONLY with a valid JSON object containing exactly these keys: 'title', 'priority', 'due_date', 'assignee_id', 'assignee_name'."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"Current Date: {current_date}\nUser Command: {prompt}"
+            }
+        ]
+    )
+    result_text = response.choices[0].message.content
+    data = json.loads(result_text)
+    return {
+        "title": data.get("title") or prompt,
+        "priority": data.get("priority", "medium"),
+        "due_date": data.get("due_date"),
+        "assignee_id": data.get("assignee_id"),
+        "assignee_name": data.get("assignee_name")
+    }
+
 

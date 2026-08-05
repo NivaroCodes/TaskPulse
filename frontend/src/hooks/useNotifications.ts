@@ -6,11 +6,47 @@ import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 const NOTIFICATION_SOUND = "/notification.wav";
+let audioUnlocked = false;
+let globalAudio: HTMLAudioElement | null = null;
+
+const primeAudio = () => {
+  if (audioUnlocked || typeof window === "undefined") return;
+  try {
+    globalAudio = new Audio(NOTIFICATION_SOUND);
+    globalAudio.volume = 0.01;
+    const playPromise = globalAudio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          if (globalAudio) {
+            globalAudio.pause();
+            globalAudio.currentTime = 0;
+            globalAudio.volume = 1.0;
+          }
+          audioUnlocked = true;
+          window.removeEventListener("pointerdown", primeAudio);
+          window.removeEventListener("keydown", primeAudio);
+        })
+        .catch(() => {});
+    }
+  } catch {
+  }
+};
 
 export function useNotifications() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const queryClient = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.addEventListener("pointerdown", primeAudio);
+    window.addEventListener("keydown", primeAudio);
+    return () => {
+      window.removeEventListener("pointerdown", primeAudio);
+      window.removeEventListener("keydown", primeAudio);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) {
@@ -53,18 +89,13 @@ export function useNotifications() {
             const data = JSON.parse(event.data);
             if (data.type === "TASK_ASSIGNED") {
               try {
-                console.log("Attempting to play sound:", NOTIFICATION_SOUND);
                 const audio = new Audio(NOTIFICATION_SOUND);
                 audio.volume = 1.0;
                 const playPromise = audio.play();
-                
                 if (playPromise !== undefined) {
-                  playPromise
-                    .then(() => console.log("Audio played successfully!"))
-                    .catch(e => console.error("Audio play blocked by browser:", e));
+                  playPromise.catch(() => {});
                 }
-              } catch (e) {
-                console.error("Failed to play audio:", e);
+              } catch {
               }
 
               toast("New Task Assigned", {

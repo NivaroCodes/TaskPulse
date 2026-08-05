@@ -31,7 +31,7 @@ export function DashboardAnalytics({ memberships, role }: { memberships: any; ro
       const u = m.publicUserData;
       if (u && u.userId) {
         const name = `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim();
-        member_names[u.userId] = name || u.identifier || "Участник команды";
+        member_names[u.userId] = name || u.identifier || "Team Member";
       }
     });
     generateInsights({ member_names }, {
@@ -123,7 +123,7 @@ export function DashboardAnalytics({ memberships, role }: { memberships: any; ro
                 AI Scrum Master & Sprint Insights
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Интеллектуальный анализ спринта, рисков и загруженности команды
+                Intelligent analysis of sprint health, bottleneck identification, and workload distribution
               </p>
             </div>
           </div>
@@ -138,12 +138,12 @@ export function DashboardAnalytics({ memberships, role }: { memberships: any; ro
             {isGenerating ? (
               <>
                 <RefreshCw className="h-3.5 w-3.5 mr-2 text-cyan-400 animate-spin" />
-                Анализ спринта...
+                Analyzing sprint...
               </>
             ) : (
               <>
                 <Sparkles className="h-3.5 w-3.5 mr-1.5 text-cyan-400 animate-pulse" />
-                {insights ? "Обновить отчёт" : "Сгенерировать AI-отчёт"}
+                {insights ? "Update Report" : "Generate AI Report"}
               </>
             )}
           </Button>
@@ -156,16 +156,16 @@ export function DashboardAnalytics({ memberships, role }: { memberships: any; ro
                 <BrainCircuit className="h-6 w-6 text-cyan-400 animate-bounce" />
               </div>
               <p className="text-xs font-medium text-cyan-400/80 animate-pulse">
-                Сбор активности и анализ метрик команды через Groq LLM...
+                Gathering activity logs and analyzing team metrics via Groq LLM...
               </p>
             </div>
           )}
           {!isGenerating && !insights && (
             <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
               <BrainCircuit className="h-10 w-10 text-cyan-500/30 mb-3" />
-              <p className="text-sm font-medium">Готов к интеллектуальному аудиту спринта</p>
+              <p className="text-sm font-medium">Ready for intelligent sprint audit</p>
               <p className="text-xs max-w-md mt-1 text-muted-foreground/80">
-                Нажми кнопку генерации, чтобы получить оценку здоровья спринта, выявить узкие места и получить рекомендации по распределению задач.
+                Click generate to obtain sprint health score, identify bottlenecks, and receive actionable recommendations for task distribution.
               </p>
             </div>
           )}

@@ -51,8 +51,12 @@ export function useCreateTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: TaskCreate) => tasksApi.create(getToken, orgId!, data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["tasks", orgId] });
+    onSuccess: (newTask) => {
+      qc.setQueryData<Task[]>(["tasks", orgId], (old) => {
+        if (!old) return [newTask];
+        if (old.some((t) => t.id === newTask.id)) return old;
+        return [...old, newTask];
+      });
       toast.success("Task created");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -77,11 +81,15 @@ export function useUpdateTask() {
       }
       return { prev };
     },
+    onSuccess: (updatedTask) => {
+      qc.setQueryData<Task[]>(["tasks", orgId], (old) =>
+        old?.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
+      );
+    },
     onError: (e: Error, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["tasks", orgId], ctx.prev);
       toast.error(e.message);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ["tasks", orgId] }),
   });
 }
 
@@ -107,7 +115,6 @@ export function useDeleteTask() {
       toast.error(e.message);
     },
     onSuccess: () => toast.success("Task deleted"),
-    onSettled: () => qc.invalidateQueries({ queryKey: ["tasks", orgId] }),
   });
 }
 
@@ -172,6 +179,16 @@ export function useImproveText() {
   return useMutation({
     mutationFn: (data: { text: string }) =>
       aiApi.improveText(getToken, orgId!, data),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useSprintInsights() {
+  const { getToken } = useAuth();
+  const orgId = useOrgId();
+  return useMutation({
+    mutationFn: (data?: { member_names?: Record<string, string> }) =>
+      aiApi.getSprintInsights(getToken, orgId!, data),
     onError: (e: Error) => toast.error(e.message),
   });
 }

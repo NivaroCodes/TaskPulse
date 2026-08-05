@@ -71,6 +71,22 @@ export function useNotifications() {
                 description: `You have been assigned to: ${data.task_title}`,
                 icon: React.createElement(BellRing, { className: "h-5 w-5 text-primary" }),
               });
+            } else if (data.type === "TASK_UPDATED" && data.task) {
+              queryClient.setQueriesData({ queryKey: ["tasks"] }, (oldData: any) => {
+                if (!Array.isArray(oldData)) return oldData;
+                return oldData.map((t: any) => (t.id === data.task.id ? data.task : t));
+              });
+            } else if (data.type === "TASK_CREATED" && data.task) {
+              queryClient.setQueriesData({ queryKey: ["tasks"] }, (oldData: any) => {
+                if (!Array.isArray(oldData)) return [data.task];
+                if (oldData.some((t: any) => t.id === data.task.id)) return oldData;
+                return [...oldData, data.task];
+              });
+            } else if (data.type === "TASK_DELETED" && data.task_id) {
+              queryClient.setQueriesData({ queryKey: ["tasks"] }, (oldData: any) => {
+                if (!Array.isArray(oldData)) return oldData;
+                return oldData.filter((t: any) => t.id !== data.task_id);
+              });
             } else if (data.type === "BOARD_UPDATED") {
               queryClient.invalidateQueries({ queryKey: ["tasks"] });
             } else if (data.type === "PRESENCE_UPDATED") {

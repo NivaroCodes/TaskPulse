@@ -128,4 +128,6 @@ export const aiApi = {
       getToken,
       orgId,
     ),
+  getSprintInsights: (getToken: GetToken, orgId: string, data?: { member_names?: Record<string, string> }) =>
+    request<{ insights: string }>("/api/ai/sprint-insights", { method: "POST", body: JSON.stringify(data ?? {}) }, getToken, orgId),
 };

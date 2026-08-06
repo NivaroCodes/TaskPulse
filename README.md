@@ -1,151 +1,124 @@
-# TaskPulse
+# ⚡️ TaskPulse
 
-TaskPulse is a full-stack task management application designed to help teams organize and track their work efficiently. It features a robust FastAPI backend for API services and a dynamic React frontend for an intuitive user experience, with Clerk handling authentication and authorization.
+![TaskPulse Banner](https://via.placeholder.com/1200x400.png?text=TaskPulse+-+AI-Powered+Task+Management) *(Add a real banner here later)*
 
-## Features
+TaskPulse is a next-generation, AI-powered task management platform designed for modern teams. Built with a high-performance **FastAPI** backend and a stunning **React (TanStack Start)** frontend, it brings Linear-level aesthetics, powerful LLM integrations, and enterprise-grade multi-tenancy into a single seamless workspace.
 
-*   **User Authentication & Authorization:** Secure user management and organization-based permissions powered by Clerk.
-*   **Task Management:** Create, read, update, and delete tasks.
-*   **Organization Support:** Tasks are associated with organizations, allowing for multi-tenancy.
-*   **RESTful API:** A well-structured API built with FastAPI.
-*   **Modern Frontend:** A responsive and interactive user interface built with React.
+## ✨ Key Features
 
-## Technologies Used
+### 🤖 1. AI-Powered Workflow (Powered by Groq LLM)
+TaskPulse isn't just a Kanban board; it actively helps you work faster:
+- **AI Spotlight Command Bar (`Cmd+K`)**: Create and parse tasks effortlessly using Natural Language processing.
+- **AI Subtask Generator**: Instantly break down complex tasks into step-by-step actionable checklists.
+- **AI Description Polish**: Turn rough notes into perfectly formatted, professional Markdown briefs.
+- **AI Comment Assistant**: Rewrite your comments to be more professional, friendly, or concise before sending.
+- **AI Thread Summarization**: Auto-generate Consensus and Action Items from long comment threads.
+- **AI Sprint Insights**: Executive-level sprint analytics and standup summaries for Admins & PMs.
 
-### Backend
+### 🎨 2. Premium UX & Design
+- **Linear-Style Aesthetics**: Beautiful glassmorphism, fluid animations, and a modern dark-mode native interface using TailwindCSS.
+- **Immersive Interaction**: Real-time audio notifications, dynamic unread badges, and zero-scroll flawless modal design.
+- **Activity Logging**: Track every change, assignment, and status update with a detailed, timestamped Activity Log.
 
-*   Python 3.8+
-*   FastAPI
-*   Uvicorn (ASGI server)
-*   SQLAlchemy (ORM)
-*   SQLite (Database)
-*   Clerk Backend SDK (Authentication & Authorization)
-*   python-dotenv (Environment variables)
-*   httpx (HTTP client for Clerk SDK)
-*   svix (Webhook verification)
+### 🏢 3. Enterprise & SaaS Ready
+- **Multi-Tenancy & Authentication**: Seamless login, organization switching, and role-based access control (RBAC) managed by **Clerk**.
+- **Organization Invites**: Generate and accept secure `/invite/$token` links.
+- **Monetization & Billing**: Integrated Subscription system (Free, Team, Enterprise) featuring **Kaspi Mock Pay** for simulated transactions.
+
+## 🛠 Technology Stack
 
 ### Frontend
+- **Framework**: React.js 18+ with **TanStack Start** (File-based routing)
+- **Styling**: TailwindCSS & Radix UI (Accessible Primitives)
+- **State & Data Fetching**: TanStack Query (React Query)
+- **Authentication**: Clerk React SDK
 
-*   React.js
-*   Clerk Frontend SDK (Authentication & Authorization)
-*   Vite (Build tool)
+### Backend
+- **Framework**: FastAPI (Python 3.10+) & Uvicorn
+- **Database**: SQLAlchemy (Async ORM) & SQLite (Ready for PostgreSQL)
+- **AI Integration**: Groq Cloud SDK (Llama-3.3-70b-versatile)
+- **Authentication**: Clerk Backend API & Svix (Webhook Verification)
 
-## Setup Instructions
+## 🚀 Setup Instructions
 
 ### Prerequisites
-
-*   Python 3.8+
-*   Node.js (LTS recommended)
-*   Clerk Account (for authentication)
+- Python 3.10+
+- Node.js 18+
+- [Clerk Account](https://clerk.dev/) for Authentication
+- [Groq API Key](https://groq.com/) for AI features
 
 ### 1. Clone the Repository
-
 ```bash
 git clone https://github.com/NivaroCodes/TaskPulse.git
 cd TaskPulse
 ```
 
 ### 2. Backend Setup
-
-Navigate to the `backend` directory:
-
+Navigate to the backend directory:
 ```bash
 cd backend
 ```
 
-#### a. Create and Activate Virtual Environment
-
+Create and activate virtual environment (using `uv` or `venv`):
 ```bash
-python -m venv .venv
-# On Windows
-.venv\Scripts\activate
-# On macOS/Linux
-source .venv/bin/activate
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-#### b. Install Dependencies
-
+Install dependencies:
 ```bash
-pip install uvicorn fastapi sqlalchemy python-dotenv clerk-backend-api httpx svix
+uv pip install uvicorn fastapi sqlalchemy python-dotenv clerk-backend-api httpx svix groq
 ```
 
-#### c. Environment Variables
-
-Create a `.env` file in the `backend` directory with the following content:
-
-```
+Create a `.env` file in the `backend` directory:
+```env
 CLERK_SECRET_KEY="sk_test_..."
 CLERK_PUBLISHABLE_KEY="pk_test_..."
 CLERK_JWKS_URL="https://your-instance.clerk.accounts.dev/.well-known/jwks.json"
-CLERK_WEBHOOK_SECRET="whsec_..." # Required for webhook verification
+CLERK_WEBHOOK_SECRET="whsec_..." 
 
-DATABASE_URL="sqlite:///./taskboard.db" # Or your preferred database URL
-FRONTEND_URL="http://localhost:5173" # Must match your frontend's URL
+GROQ_API_KEY="gsk_..." # Required for AI Features
+
+DATABASE_URL="sqlite+aiosqlite:///./taskboard.db" 
+FRONTEND_URL="http://localhost:5173"
 ```
 
-*Replace placeholder values with your actual Clerk keys and URLs.*
+Start the Backend server:
+```bash
+uv run start.py
+```
+*API will run on `http://localhost:8000`. Check Swagger Docs at `http://localhost:8000/docs`.*
 
 ### 3. Frontend Setup
-
-Navigate to the `frontend` directory:
-
+Navigate to the frontend directory:
 ```bash
 cd ../frontend
 ```
 
-#### a. Install Dependencies
-
+Install dependencies:
 ```bash
-npm install # or yarn install
+npm install # or pnpm install
 ```
 
-#### b. Environment Variables
-
-Create a `.env` file in the `frontend` directory with the following content:
-
-```
+Create a `.env` file in the `frontend` directory:
+```env
 VITE_CLERK_PUBLISHABLE_KEY="pk_test_..."
 VITE_CLERK_SIGN_IN_URL="/sign-in"
 VITE_CLERK_SIGN_UP_URL="/sign-up"
 VITE_CLERK_AFTER_SIGN_IN_URL="/dashboard"
 VITE_CLERK_AFTER_SIGN_UP_URL="/dashboard"
-VITE_BACKEND_URL="http://localhost:8000" # Your backend API URL
+
+VITE_BACKEND_URL="http://localhost:8000"
 ```
 
-*Replace placeholder values with your actual Clerk keys and URLs.*
-
-## Running the Application
-
-### 1. Start the Backend
-
-From the `backend` directory:
-
+Start the Frontend development server:
 ```bash
-uv run start.py
+npm run dev
 ```
+*App will run on `http://localhost:5173`.*
 
-The backend will run on `http://0.0.0.0:8000`.
+## 🤝 Contributing
+Contributions, issues, and feature requests are welcome! Feel free to fork the repository and submit pull requests.
 
-### 2. Start the Frontend
-
-From the `frontend` directory:
-
-```bash
-npm run dev # or yarn dev
-```
-
-The frontend will typically run on `http://localhost:5173`.
-
-## Clerk Configuration
-
-*   **Clerk Dashboard:** Ensure your Clerk application is is configured correctly.
-*   **Frontend URL:** Add `http://localhost:5173` to your Clerk application's "Allowed Origins" and "Redirect URLs".
-*   **Backend Webhook:** Configure a webhook in your Clerk Dashboard pointing to `http://localhost:8000/api/webhooks/clerk`. Make sure to provide the `CLERK_WEBHOOK_SECRET` in your backend's `.env` file and the corresponding secret in the Clerk webhook configuration.
-
-## Contributing
-
-Feel free to fork the repository, create feature branches, and submit pull requests.
-
-## License
-
-MIT
+## 📄 License
+This project is licensed under the [MIT License](LICENSE).

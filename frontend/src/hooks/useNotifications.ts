@@ -58,7 +58,7 @@ export function useNotifications() {
     }
 
     let isComponentMounted = true;
-    let reconnectTimer: NodeJS.Timeout;
+    let reconnectTimer: ReturnType<typeof setTimeout>;
 
     const connectWebSocket = async () => {
       try {
@@ -88,20 +88,44 @@ export function useNotifications() {
           try {
             const data = JSON.parse(event.data);
             if (data.type === "TASK_ASSIGNED") {
-              try {
-                const audio = new Audio(NOTIFICATION_SOUND);
-                audio.volume = 1.0;
-                const playPromise = audio.play();
-                if (playPromise !== undefined) {
-                  playPromise.catch(() => {});
+              const now = Date.now();
+              if (now - ((window as any).__lastAudioPlay || 0) > 1000) {
+                (window as any).__lastAudioPlay = now;
+                try {
+                  const audio = new Audio(NOTIFICATION_SOUND);
+                  audio.volume = 1.0;
+                  const playPromise = audio.play();
+                  if (playPromise !== undefined) {
+                    playPromise.catch(() => {});
+                  }
+                } catch {
                 }
-              } catch {
               }
 
               toast("New Task Assigned", {
                 description: `You have been assigned to: ${data.task_title}`,
                 icon: React.createElement(BellRing, { className: "h-5 w-5 text-primary" }),
               });
+            } else if (data.type === "NEW_COMMENT") {
+              const now = Date.now();
+              if (now - ((window as any).__lastAudioPlay || 0) > 1000) {
+                (window as any).__lastAudioPlay = now;
+                try {
+                  const audio = new Audio(NOTIFICATION_SOUND);
+                  audio.volume = 1.0;
+                  const playPromise = audio.play();
+                  if (playPromise !== undefined) {
+                    playPromise.catch(() => {});
+                  }
+                } catch {
+                }
+              }
+
+              toast("New Message Arrived 💬", {
+                description: data.comment_text || "A new comment was added to a task.",
+                icon: React.createElement(BellRing, { className: "h-5 w-5 text-indigo-400" }),
+              });
+              queryClient.invalidateQueries({ queryKey: ["tasks"] });
             } else if (data.type === "TASK_UPDATED" && data.task) {
               queryClient.setQueriesData({ queryKey: ["tasks"] }, (oldData: any) => {
                 if (!Array.isArray(oldData)) return oldData;

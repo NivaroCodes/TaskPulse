@@ -96,10 +96,10 @@ function InvitePage() {
               ) : !isSignedIn ? (
                 <div className="w-full text-center">
                   <Button asChild className="w-full">
-                    <Link to="/sign-up">Sign up to Accept</Link>
+                    <Link to={"/sign-up" as any}>Sign up to Accept</Link>
                   </Button>
                   <p className="mt-4 text-xs text-muted-foreground">
-                    Already have an account? <Link to="/sign-in" className="underline hover:text-primary transition-colors">Sign in</Link>
+                    Already have an account? <Link to={"/sign-in" as any} className="underline hover:text-primary transition-colors">Sign in</Link>
                   </p>
                 </div>
               ) : (

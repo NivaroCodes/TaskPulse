@@ -11,8 +11,8 @@ export function SiteFooter() {
         </div>
         <nav className="flex items-center gap-4">
           <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
-          <Link to="/sign-in" className="hover:text-foreground">Sign in</Link>
-          <Link to="/sign-up" className="hover:text-foreground">Sign up</Link>
+          <Link to={"/sign-in" as any} className="hover:text-foreground">Sign in</Link>
+          <Link to={"/sign-up" as any} className="hover:text-foreground">Sign up</Link>
         </nav>
       </div>
     </footer>

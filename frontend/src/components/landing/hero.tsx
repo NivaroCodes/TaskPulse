@@ -35,7 +35,7 @@ export function Hero() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg">
-              <Link to="/sign-up">
+              <Link to={"/sign-up" as any}>
                 Start for free <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>

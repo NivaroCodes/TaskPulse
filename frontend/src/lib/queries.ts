@@ -202,4 +202,24 @@ export function useParseTaskCommand() {
     onError: (e: Error) => toast.error(e.message),
   });
 }
+
+export function useEditComment() {
+  const { getToken } = useAuth();
+  const orgId = useOrgId();
+  return useMutation({
+    mutationFn: (data: { text: string; action: string }) =>
+      aiApi.editComment(getToken, orgId!, data),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useSummarizeDiscussion() {
+  const { getToken } = useAuth();
+  const orgId = useOrgId();
+  return useMutation({
+    mutationFn: (data: { comments: Array<{ author: string; text: string }> }) =>
+      aiApi.summarizeDiscussion(getToken, orgId!, data),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
 

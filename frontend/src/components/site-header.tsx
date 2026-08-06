@@ -67,10 +67,10 @@ export function SiteHeader() {
           </SignedIn>
           <SignedOut>
             <Button asChild variant="ghost" size="sm">
-              <Link to="/sign-in">Sign in</Link>
+              <Link to={"/sign-in" as any}>Sign in</Link>
             </Button>
             <Button asChild size="sm">
-              <Link to="/sign-up">Get started</Link>
+              <Link to={"/sign-up" as any}>Get started</Link>
             </Button>
           </SignedOut>
         </div>

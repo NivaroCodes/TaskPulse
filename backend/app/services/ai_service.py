@@ -157,4 +157,67 @@ async def parse_task_command(prompt: str, current_date: str, members: list[dict[
         "assignee_name": data.get("assignee_name")
     }
 
+
+async def edit_comment(text: str, action: str) -> str:
+    action_instructions = {
+        "professional": "Rewrite the text to be polite, constructive, clear, and highly professional while retaining its core meaning.",
+        "grammar": "Correct all grammar, spelling, typography, and punctuation errors while preserving the exact style and tone.",
+        "concise": "Condense the text to be brief, punchy, and highly concise while preserving all critical facts, dates, and decisions."
+    }
+    selected_instruction = action_instructions.get(action, action_instructions["professional"])
+
+    response = await client.chat.completions.create(
+        model=MODEL_NAME,
+        temperature=0.2,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an elite AI communication editor for TaskPulse. "
+                    f"Task: {selected_instruction}\n\n"
+                    "RULES:\n"
+                    "1. LINGUISTIC PURITY & MIRRORING: Output the rewritten text in the EXACT SAME LANGUAGE as the original input text with 100% purity. Do not switch languages or mix vocabulary.\n"
+                    "2. Return ONLY the rewritten text without any introductory phrases, explanations, markdown quotes, or conversational fluff."
+                )
+            },
+            {
+                "role": "user",
+                "content": text
+            }
+        ]
+    )
+    return response.choices[0].message.content.strip()
+
+
+async def summarize_discussion(comments: list[dict[str, str]]) -> dict:
+    formatted_thread = "\n".join([f"{c.get('author', 'User')}: {c.get('text', '')}" for c in comments])
+
+    response = await client.chat.completions.create(
+        model=MODEL_NAME,
+        temperature=0.2,
+        response_format={"type": "json_object"},
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an elite AI Project Communications Analyst for TaskPulse. Analyze the provided task discussion thread and produce a structured JSON summary.\n\n"
+                    "RULES:\n"
+                    "1. LINGUISTIC PURITY & MIRRORING: The summary MUST be in the exact same dominant language of the discussion thread (e.g., entirely in Russian if discussed in Russian, entirely in English if in English). Never mix languages or produce calques.\n"
+                    "2. Return ONLY a valid JSON object with exactly two keys:\n"
+                    "   - 'consensus': A concise 1-2 sentence overview of the current discussion status, core conclusion, or main decision reached.\n"
+                    "   - 'action_items': A JSON array of short string bullet points representing next steps, promises, or unresolved blockers (include author names if relevant, maximum 4 items)."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"Discussion Thread:\n{formatted_thread}"
+            }
+        ]
+    )
+    result_text = response.choices[0].message.content
+    data = json.loads(result_text)
+    return {
+        "consensus": data.get("consensus") or "No clear consensus reached.",
+        "action_items": data.get("action_items") or []
+    }
 

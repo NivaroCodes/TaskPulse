@@ -15,7 +15,7 @@ export function CTA() {
           </p>
           <div className="relative mt-6">
             <Button asChild size="lg">
-              <Link to="/sign-up">Create your board <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              <Link to={"/sign-up" as any}>Create your board <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
           </div>
         </div>

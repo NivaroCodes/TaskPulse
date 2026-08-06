@@ -18,6 +18,10 @@ from app.schemas.ai import (
     SprintInsightsResponse,
     ParseTaskCommandRequest,
     ParseTaskCommandResponse,
+    EditCommentRequest,
+    EditCommentResponse,
+    SummarizeDiscussionRequest,
+    SummarizeDiscussionResponse,
 )
 from app.services import ai_service
 
@@ -126,4 +130,23 @@ async def parse_task_command(
         current_date=request.current_date,
         members=request.members
     )
-    return ParseTaskCommandResponse(**result)
+    return ParseTaskCommandResponse(**result)
+
+
+@router.post("/edit-comment", response_model=EditCommentResponse)
+async def edit_comment_endpoint(
+    request: EditCommentRequest,
+    user: AuthUser = Depends(get_current_user)
+):
+    improved_text = await ai_service.edit_comment(request.text, request.action)
+    return EditCommentResponse(result_text=improved_text)
+
+
+@router.post("/summarize-discussion", response_model=SummarizeDiscussionResponse)
+async def summarize_discussion_endpoint(
+    request: SummarizeDiscussionRequest,
+    user: AuthUser = Depends(get_current_user)
+):
+    result = await ai_service.summarize_discussion(request.comments)
+    return SummarizeDiscussionResponse(**result)
+

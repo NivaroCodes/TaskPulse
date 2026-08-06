@@ -181,7 +181,7 @@ export function PricingCards() {
 
               {tier.name === "Free" ? (
                 <Button asChild className="mt-5 rounded-md" variant={tier.highlight ? "default" : "outline"}>
-                  <Link to="/sign-up">{tier.cta}</Link>
+                  <Link to={"/sign-up" as any}>{tier.cta}</Link>
                 </Button>
               ) : (
                 <div className="mt-5 grid grid-cols-2 gap-2">

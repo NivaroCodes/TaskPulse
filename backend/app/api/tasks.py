@@ -140,6 +140,13 @@ async def create_comment(
         task_service: TaskService = Depends(get_task_service)
 ):
     comment = await task_service.create_comment(task_id, comment_data, user.user_id, user.org_id)
+    await manager.broadcast_to_org({
+        "type": "NEW_COMMENT",
+        "task_id": task_id,
+        "sender_id": user.user_id,
+        "comment_text": comment.content,
+        "comment_id": comment.id
+    }, user.org_id, exclude_user_id=user.user_id)
     await manager.broadcast_to_org({"type": "BOARD_UPDATED"}, user.org_id)
     return comment
 

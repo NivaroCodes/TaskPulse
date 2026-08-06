@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { api } from '@/lib/api';
 
 export const Route = createFileRoute('/kaspi-mock-pay')({
   component: KaspiMockPay,

@@ -51,7 +51,7 @@ export function Board() {
   const update = useUpdateTask();
   const remove = useDeleteTask();
 
-  const [dialog, setDialog] = useState<{ mode: "create" | "edit"; task?: Task; status?: TaskStatus } | null>(null);
+  const [dialog, setDialog] = useState<{ mode: "create"; status?: TaskStatus } | { mode: "edit"; task: Task } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Task | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showAiPalette, setShowAiPalette] = useState(false);
@@ -86,7 +86,7 @@ export function Board() {
 
   const onlineMembers = useMemo(() => {
     if (!memberships?.data) return [];
-    return memberships.data.filter((m) => onlineUsers.includes(m.publicUserData.userId));
+    return memberships.data.filter((m) => m.publicUserData?.userId && onlineUsers.includes(m.publicUserData.userId));
   }, [memberships?.data, onlineUsers]);
 
   const sensors = useSensors(
@@ -155,12 +155,12 @@ export function Board() {
                 <Tooltip key={m.id}>
                   <TooltipTrigger asChild>
                     <Avatar className="h-8 w-8 border-2 border-background cursor-pointer">
-                      <AvatarImage src={m.publicUserData.imageUrl} />
-                      <AvatarFallback className="text-xs">{m.publicUserData.identifier?.[0]?.toUpperCase()}</AvatarFallback>
+                      <AvatarImage src={m.publicUserData?.imageUrl} />
+                      <AvatarFallback className="text-xs">{m.publicUserData?.identifier?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{m.publicUserData.firstName || m.publicUserData.identifier}</p>
+                    <p>{m.publicUserData?.firstName || m.publicUserData?.identifier || 'User'}</p>
                   </TooltipContent>
                 </Tooltip>
               ))}

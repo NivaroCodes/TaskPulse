@@ -40,3 +40,20 @@ class ParseTaskCommandResponse(BaseModel):
     assignee_id: Optional[str] = None
     assignee_name: Optional[str] = None
 
+
+class EditCommentRequest(BaseModel):
+    text: str
+    action: str
+
+
+class EditCommentResponse(BaseModel):
+    result_text: str
+
+
+class SummarizeDiscussionRequest(BaseModel):
+    comments: list[dict[str, str]]
+
+
+class SummarizeDiscussionResponse(BaseModel):
+    consensus: str
+    action_items: list[str]

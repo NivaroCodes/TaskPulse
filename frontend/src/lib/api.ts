@@ -137,5 +137,19 @@ export const aiApi = {
       getToken,
       orgId,
     ),
+  editComment: (getToken: GetToken, orgId: string, data: { text: string; action: string }) =>
+    request<{ result_text: string }>(
+      "/api/ai/edit-comment",
+      { method: "POST", body: JSON.stringify(data) },
+      getToken,
+      orgId,
+    ),
+  summarizeDiscussion: (getToken: GetToken, orgId: string, data: { comments: Array<{ author: string; text: string }> }) =>
+    request<{ consensus: string; action_items: string[] }>(
+      "/api/ai/summarize-discussion",
+      { method: "POST", body: JSON.stringify(data) },
+      getToken,
+      orgId,
+    ),
 };
 

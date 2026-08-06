@@ -18,8 +18,8 @@ export function ActivityLogSection({ task }: { task: Task }) {
   }, [task.id, orgId, getToken]);
 
   const getUserName = (userId: string) => {
-    const member = memberships?.data?.find(m => m.publicUserData.userId === userId);
-    if (member) return `${member.publicUserData.firstName} ${member.publicUserData.lastName}`;
+    const member = memberships?.data?.find(m => m.publicUserData?.userId === userId);
+    if (member?.publicUserData) return `${member.publicUserData.firstName || ''} ${member.publicUserData.lastName || ''}`.trim() || "System / Unknown User";
     return "System / Unknown User";
   };
 

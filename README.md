@@ -1,6 +1,6 @@
 # ⚡️ TaskPulse
 
-![TaskPulse Banner](https://via.placeholder.com/1200x400.png?text=TaskPulse+-+AI-Powered+Task+Management) *(Add a real banner here later)*
+![TaskPulse Banner](./banner.png)
 
 TaskPulse is a next-generation, AI-powered task management platform designed for modern teams. Built with a high-performance **FastAPI** backend and a stunning **React (TanStack Start)** frontend, it brings Linear-level aesthetics, powerful LLM integrations, and enterprise-grade multi-tenancy into a single seamless workspace.
 

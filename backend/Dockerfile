@@ -11,4 +11,4 @@ FROM python:3.14-slim
 WORKDIR /app
 COPY --from=builder /app/.venv .venv/
 COPY . .
-CMD ["/app/.venv/bin/fastapi", "run"]
+CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "8080"]

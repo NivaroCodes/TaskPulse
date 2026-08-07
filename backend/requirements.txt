@@ -3,7 +3,9 @@
 alembic==1.19.0
     # via taskpulse (pyproject.toml)
 annotated-doc==0.0.5
-    # via fastapi
+    # via
+    #   fastapi
+    #   typer
 annotated-types==0.8.0
     # via pydantic
 anyio==4.14.2
@@ -11,6 +13,7 @@ anyio==4.14.2
     #   groq
     #   httpx
     #   starlette
+    #   watchfiles
 attrs==26.1.0
     # via svix
 certifi==2026.7.22
@@ -18,6 +21,7 @@ certifi==2026.7.22
     #   httpcore
     #   httpx
     #   requests
+    #   sentry-sdk
 cffi==2.1.1
     # via cryptography
 charset-normalizer==3.4.9
@@ -25,17 +29,37 @@ charset-normalizer==3.4.9
 clerk-backend-api==6.0.1
     # via taskpulse (pyproject.toml)
 click==8.4.2
-    # via uvicorn
+    # via
+    #   rich-toolkit
+    #   uvicorn
 colorama==0.4.6
-    # via click
+    # via
+    #   click
+    #   typer
 cryptography==48.0.1
     # via clerk-backend-api
 deprecated==1.3.1
     # via svix
+detect-installer==0.1.0
+    # via fastapi-cloud-cli
 distro==1.9.0
     # via groq
+dnspython==2.8.0
+    # via email-validator
+email-validator==2.3.0
+    # via
+    #   fastapi
+    #   pydantic
 fastapi==0.141.1
     # via taskpulse (pyproject.toml)
+fastapi-cli==0.0.32
+    # via fastapi
+fastapi-cloud-cli==0.23.0
+    # via fastapi-cli
+fastar==0.11.0
+    # via
+    #   fastapi
+    #   fastapi-cloud-cli
 greenlet==3.5.4
     # via sqlalchemy
 groq==1.6.0
@@ -48,20 +72,33 @@ httpcore==1.0.9
     # via
     #   clerk-backend-api
     #   httpx
+httptools==0.8.0
+    # via uvicorn
 httpx==0.28.1
     # via
     #   clerk-backend-api
+    #   fastapi
+    #   fastapi-cloud-cli
     #   groq
     #   svix
 idna==3.18
     # via
     #   anyio
+    #   email-validator
     #   httpx
     #   requests
+jinja2==3.1.6
+    # via fastapi
 mako==1.4.1
     # via alembic
+markdown-it-py==4.2.0
+    # via rich
 markupsafe==3.0.3
-    # via mako
+    # via
+    #   jinja2
+    #   mako
+mdurl==0.1.2
+    # via markdown-it-py
 psycopg==3.3.4
     # via taskpulse (pyproject.toml)
 psycopg-binary==3.3.4
@@ -72,10 +109,19 @@ pydantic==2.13.4
     # via
     #   clerk-backend-api
     #   fastapi
+    #   fastapi-cloud-cli
     #   groq
+    #   pydantic-extra-types
+    #   pydantic-settings
     #   svix
 pydantic-core==2.46.4
     # via pydantic
+pydantic-extra-types==2.11.1
+    # via fastapi
+pydantic-settings==2.14.2
+    # via fastapi
+pygments==2.20.0
+    # via rich
 pyjwt==2.13.0
     # via
     #   taskpulse (pyproject.toml)
@@ -83,9 +129,30 @@ pyjwt==2.13.0
 python-dateutil==2.9.0.post0
     # via svix
 python-dotenv==1.2.2
-    # via taskpulse (pyproject.toml)
+    # via
+    #   taskpulse (pyproject.toml)
+    #   pydantic-settings
+    #   uvicorn
+python-multipart==0.0.32
+    # via fastapi
+pyyaml==6.0.3
+    # via uvicorn
 requests==2.34.2
     # via stripe
+rich==15.0.0
+    # via
+    #   rich-toolkit
+    #   typer
+rich-toolkit==0.20.3
+    # via
+    #   fastapi-cli
+    #   fastapi-cloud-cli
+rignore==0.8.1
+    # via fastapi-cloud-cli
+sentry-sdk==2.66.1
+    # via fastapi-cloud-cli
+shellingham==1.5.4
+    # via typer
 six==1.17.0
     # via python-dateutil
 sniffio==1.3.1
@@ -102,6 +169,10 @@ stripe==15.4.0
     # via taskpulse (pyproject.toml)
 svix==1.99.1
     # via taskpulse (pyproject.toml)
+typer==0.27.1
+    # via
+    #   fastapi-cli
+    #   fastapi-cloud-cli
 typing-extensions==4.16.0
     # via
     #   alembic
@@ -109,6 +180,8 @@ typing-extensions==4.16.0
     #   groq
     #   pydantic
     #   pydantic-core
+    #   pydantic-extra-types
+    #   rich-toolkit
     #   sqlalchemy
     #   stripe
     #   typing-inspection
@@ -116,13 +189,24 @@ typing-inspection==0.4.2
     # via
     #   fastapi
     #   pydantic
+    #   pydantic-settings
 tzdata==2026.3
     # via psycopg
 urllib3==2.7.0
-    # via requests
+    # via
+    #   requests
+    #   sentry-sdk
 uvicorn==0.52.1
-    # via taskpulse (pyproject.toml)
+    # via
+    #   taskpulse (pyproject.toml)
+    #   fastapi
+    #   fastapi-cli
+    #   fastapi-cloud-cli
+watchfiles==1.2.0
+    # via uvicorn
 websockets==17.0.1
-    # via taskpulse (pyproject.toml)
+    # via
+    #   taskpulse (pyproject.toml)
+    #   uvicorn
 wrapt==2.3.0
     # via deprecated
